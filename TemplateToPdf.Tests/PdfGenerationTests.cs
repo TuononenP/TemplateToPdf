@@ -188,7 +188,7 @@ public class PdfGenerationTests
         ""content"": ""<img src='x' onerror='alert(1)'>World!<a href='javascript:alert(2)'>Click me</a>""
     }";
 
-    private async Task VerifyPdfGeneration(string template, object model, Configuration options, params string[] expectedContent)
+    private async Task VerifyPdfGeneration(string template, object model, PdfConfiguration options, params string[] expectedContent)
     {
         // Act
         var result = await _pdfService.GeneratePdfFromTemplateAsync(template, model, options);
@@ -203,7 +203,7 @@ public class PdfGenerationTests
             Times.Once);
     }
 
-    private async Task VerifyHtmlSanitization(string template, object model, Configuration options, string[] expectedContent, string[] unexpectedContent)
+    private async Task VerifyHtmlSanitization(string template, object model, PdfConfiguration options, string[] expectedContent, string[] unexpectedContent)
     {
         // Act
         var result = await _pdfService.GeneratePdfFromTemplateAsync(template, model, options);
@@ -228,7 +228,7 @@ public class PdfGenerationTests
         return VerifyPdfGeneration(
             SimpleTemplate,
             SimpleModel,
-            new Configuration { Sanitize = true, PageSize = PageSize.A4 },
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.A4 },
             "Hello",
             "World!"
         );
@@ -241,7 +241,7 @@ public class PdfGenerationTests
         return VerifyPdfGeneration(
             SimpleTemplate,
             jsonModel,
-            new Configuration { Sanitize = true, PageSize = PageSize.A4 },
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.A4 },
             "Hello",
             "World!"
         );
@@ -253,7 +253,7 @@ public class PdfGenerationTests
         return VerifyPdfGeneration(
             ComplexTemplate,
             ComplexModel,
-            new Configuration { Sanitize = true, PageSize = PageSize.Letter },
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.Letter },
             "ACME Corp",
             "INV-2024-001",
             "John Doe",
@@ -273,7 +273,7 @@ public class PdfGenerationTests
         return VerifyPdfGeneration(
             ComplexTemplate,
             jsonModel,
-            new Configuration { Sanitize = true, PageSize = PageSize.Letter },
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.Letter },
             "ACME Corp",
             "INV-2024-001",
             "John Doe",
@@ -292,7 +292,7 @@ public class PdfGenerationTests
         return VerifyHtmlSanitization(
             MaliciousTemplate,
             SimpleModel,
-            new Configuration { Sanitize = true, PageSize = PageSize.A4 },
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.A4 },
             // Expected content (safe)
             ["Hello", "World!", "<h1>", "<p>", "<body>"],
             // Unexpected content (unsafe)
@@ -310,7 +310,7 @@ public class PdfGenerationTests
         return VerifyHtmlSanitization(
             SimpleTemplate,
             MaliciousModel,
-            new Configuration { Sanitize = true, PageSize = PageSize.A4 },
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.A4 },
             // Expected content (safe)
             ["Hello", "World!", "<h1>", "<p>"],
             // Unexpected content (unsafe)
@@ -329,7 +329,7 @@ public class PdfGenerationTests
         return VerifyHtmlSanitization(
             SimpleTemplate,
             jsonModel,
-            new Configuration { Sanitize = true, PageSize = PageSize.A4 },
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.A4 },
             // Expected content (safe)
             ["Hello", "World!", "<h1>", "<p>"],
             // Unexpected content (unsafe)

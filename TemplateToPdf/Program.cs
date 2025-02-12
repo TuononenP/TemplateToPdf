@@ -3,8 +3,11 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using TemplateToPdf.Services;
 using TemplateToPdf.Interfaces;
+using TemplateToPdf.Data.Repositories;
 using Swashbuckle.AspNetCore.Filters;
 using Serilog;
+using TemplateToPdf.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,7 +84,34 @@ builder.Services.AddScoped<ITemplateRenderer, HandlebarsTemplateRenderer>();
 builder.Services.AddScoped<IHtmlSanitizer, HtmlSanitizerWrapper>();
 builder.Services.AddScoped<IPdfGenerationService, PdfGenerationService>();
 
+// Register TemplateDbContext
+builder.Services.AddDbContext<TemplateDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TemplateDatabase")));
+
+// Register repositories
+builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+
+// Register services
+builder.Services.AddScoped<ITemplatesService, TemplatesService>();
+
 var app = builder.Build();
+
+// Initialize the database and seed data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<TemplateDbContext>();
+        await DbInitializer.Initialize(context);
+        Log.Information("Database initialized successfully");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while initializing the database");
+        throw;
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

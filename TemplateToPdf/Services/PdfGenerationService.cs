@@ -139,7 +139,7 @@ public partial class PdfGenerationService(
         }
     }
 
-    public async Task<byte[]> GeneratePdfFromTemplateAsync<T>(string templateHtml, T model, Configuration options)
+    public async Task<byte[]> GeneratePdfFromTemplateAsync<T>(string templateHtml, T model, PdfConfiguration options)
     {
         try
         {

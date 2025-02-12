@@ -4,5 +4,5 @@ namespace TemplateToPdf.Interfaces;
 
 public interface IPdfGenerationService
 {
-    Task<byte[]> GeneratePdfFromTemplateAsync<T>(string templateHtml, T model, Configuration options);
+    Task<byte[]> GeneratePdfFromTemplateAsync<T>(string templateHtml, T model, PdfConfiguration options);
 } 

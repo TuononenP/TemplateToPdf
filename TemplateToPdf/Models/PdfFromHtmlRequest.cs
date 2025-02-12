@@ -4,42 +4,43 @@ using System.Text.Json;
 
 namespace TemplateToPdf.Models;
 
-public enum PageSize
+/// <summary>
+/// Request model for generating a PDF from an HTML template
+/// </summary>
+public class PdfFromHtmlRequest
 {
-    A0,
-    A1,
-    A2,
-    A3,
-    A4,
-    A5,
-    A6,
-    Letter,
-    Legal,
-    Tabloid
-}
-
-public class Configuration
-{
-    public bool Sanitize { get; set; } = true;
-    public PageSize PageSize { get; set; } = PageSize.A4;
-}
-
-public class PdfGenerationRequest
-{
+    /// <summary>
+    /// The HTML template with Handlebars expressions
+    /// </summary>
     public required string Template { get; set; }
+
+    /// <summary>
+    /// The data model to bind to the template
+    /// </summary>
     public required object Model { get; set; }
+
+    /// <summary>
+    /// The filename for the generated PDF (without extension)
+    /// </summary>
     public string Filename { get; set; } = "ExamplePDF";
-    public Configuration Options { get; set; } = new();
+
+    /// <summary>
+    /// Configuration options for PDF generation
+    /// </summary>
+    public PdfConfiguration Options { get; set; } = new();
 }
 
-public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerationRequest>
+/// <summary>
+/// Provides Swagger examples for the PdfFromHtmlRequest
+/// </summary>
+public class PdfFromHtmlRequestExample : IMultipleExamplesProvider<PdfFromHtmlRequest>
 {
-    public IEnumerable<SwaggerExample<PdfGenerationRequest>> GetExamples()
+    public IEnumerable<SwaggerExample<PdfFromHtmlRequest>> GetExamples()
     {
         yield return SwaggerExample.Create(
             "Simple Example",
             "Basic example with a simple template and model",
-            new PdfGenerationRequest
+            new PdfFromHtmlRequest
             {
                 Template = @"<html><body><h1>{{title}}</h1><p>{{content}}</p></body></html>",
                 Model = JsonSerializer.Deserialize<JsonElement>(@"{
@@ -47,7 +48,7 @@ public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerati
                     ""content"": ""World!""
                 }"),
                 Filename = "simple-example",
-                Options = new Configuration
+                Options = new PdfConfiguration
                 {
                     Sanitize = true,
                     PageSize = PageSize.A4
@@ -58,7 +59,7 @@ public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerati
         yield return SwaggerExample.Create(
             "Invoice Example",
             "Complex example showing an invoice template with nested objects and arrays",
-            new PdfGenerationRequest
+            new PdfFromHtmlRequest
             {
                 Template = @"<html>
                                 <body>
@@ -120,7 +121,7 @@ public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerati
                     ""total"": 69.97
                 }"),
                 Filename = "invoice-example",
-                Options = new Configuration
+                Options = new PdfConfiguration
                 {
                     Sanitize = true,
                     PageSize = PageSize.Letter
@@ -131,7 +132,7 @@ public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerati
         yield return SwaggerExample.Create(
             "Raw HTML Example",
             "Example with sanitization disabled to allow raw HTML content",
-            new PdfGenerationRequest
+            new PdfFromHtmlRequest
             {
                 Template = @"<html><body><h1>{{title}}</h1><div>{{{rawHtmlContent}}}</div></body></html>",
                 Model = JsonSerializer.Deserialize<JsonElement>(@"{
@@ -139,7 +140,7 @@ public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerati
                     ""rawHtmlContent"": ""<div style='color: red;'><strong>This HTML</strong> will not be sanitized</div>""
                 }"),
                 Filename = "raw-html-example",
-                Options = new Configuration
+                Options = new PdfConfiguration
                 {
                     Sanitize = false,
                     PageSize = PageSize.A4
