@@ -86,7 +86,7 @@ export const dataProvider = {
             body: JSON.stringify(params.data),
         });
         return {
-            data: json,
+            data: json || params.data,
         };
     },
 

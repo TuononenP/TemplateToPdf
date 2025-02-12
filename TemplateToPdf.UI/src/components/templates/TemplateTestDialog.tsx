@@ -5,12 +5,20 @@ import {
     DialogContent,
     DialogActions,
     Button,
-    TextField,
     Box,
     CircularProgress,
 } from '@mui/material';
 import { useNotify, useTranslate } from 'react-admin';
 import { PageSize } from '../../types';
+import AceEditor from 'react-ace';
+
+// Import ace editor themes and modes
+import 'ace-builds/webpack-resolver';
+import 'ace-builds/src-min-noconflict/ext-language_tools';
+import 'ace-builds/src-min-noconflict/mode-handlebars';
+import 'ace-builds/src-min-noconflict/mode-json';
+import 'ace-builds/src-min-noconflict/theme-twilight';
+import 'ace-builds/src-min-noconflict/theme-xcode';
 
 interface TemplateTestDialogProps {
     open: boolean;
@@ -55,6 +63,7 @@ export const TemplateTestDialog = ({ open, onClose, template }: TemplateTestDial
     const [loading, setLoading] = useState(false);
     const notify = useNotify();
     const translate = useTranslate();
+    const theme = localStorage.getItem('theme') || 'light';
 
     const handleTest = async () => {
         try {
@@ -112,28 +121,69 @@ export const TemplateTestDialog = ({ open, onClose, template }: TemplateTestDial
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+        <Dialog 
+            open={open} 
+            onClose={onClose} 
+            maxWidth={false}
+            PaperProps={{
+                sx: {
+                    width: '90vw',
+                    maxWidth: '1800px'
+                }
+            }}
+        >
             <DialogTitle>{translate('templates.test.title', { name: template.name })}</DialogTitle>
             <DialogContent>
-                <Box display="flex" gap={2} sx={{ mt: 2 }}>
-                    <TextField
-                        label={translate('templates.test.template')}
-                        multiline
-                        rows={20}
-                        fullWidth
-                        value={template.content}
-                        InputProps={{ readOnly: true }}
-                    />
-                    <TextField
-                        label={translate('templates.test.model')}
-                        multiline
-                        rows={20}
-                        fullWidth
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        error={!model}
-                        helperText={!model ? translate('ra.validation.required') : ''}
-                    />
+                <Box display="flex" gap={4} sx={{ mt: 2 }}>
+                    <Box flex={1}>
+                        <Box mb={1} fontWeight="bold" color="rgba(0, 0, 0, 0.6)" fontSize="0.75em">
+                            {translate('templates.test.template')}
+                        </Box>
+                        <AceEditor
+                            mode="handlebars"
+                            theme={theme === 'dark' ? 'twilight' : 'xcode'}
+                            name="template-preview"
+                            width="100%"
+                            height="600px"
+                            fontSize={14}
+                            showPrintMargin={false}
+                            showGutter={true}
+                            highlightActiveLine={true}
+                            value={template.content || ''}
+                            readOnly={true}
+                            setOptions={{
+                                showLineNumbers: true,
+                                tabSize: 4,
+                                useWorker: false
+                            }}
+                        />
+                    </Box>
+                    <Box flex={1}>
+                        <Box mb={1} fontWeight="bold" color="rgba(0, 0, 0, 0.6)" fontSize="0.75em">
+                            {translate('templates.test.model')}
+                        </Box>
+                        <AceEditor
+                            mode="json"
+                            theme={theme === 'dark' ? 'twilight' : 'xcode'}
+                            name="model-editor"
+                            width="100%"
+                            height="600px"
+                            fontSize={14}
+                            showPrintMargin={false}
+                            showGutter={true}
+                            highlightActiveLine={true}
+                            value={model}
+                            onChange={setModel}
+                            setOptions={{
+                                enableBasicAutocompletion: true,
+                                enableLiveAutocompletion: true,
+                                enableSnippets: true,
+                                showLineNumbers: true,
+                                tabSize: 2,
+                                useWorker: false
+                            }}
+                        />
+                    </Box>
                 </Box>
             </DialogContent>
             <DialogActions>

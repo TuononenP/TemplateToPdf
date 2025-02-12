@@ -25,6 +25,16 @@ const messages: { [key: string]: TranslationMessages } = {
                 createdAt: 'Created At',
                 updatedAt: 'Updated At',
             },
+            notifications: {
+                created: 'Template created',
+                updated: 'Template updated',
+                deleted: 'Template deleted',
+                error: {
+                    create: 'Error creating template',
+                    update: 'Error updating template',
+                    delete: 'Error deleting template'
+                }
+            },
             test: {
                 title: 'Test template: %{name}',
                 action: 'Test',
@@ -56,6 +66,16 @@ const messages: { [key: string]: TranslationMessages } = {
                 createdAt: 'Luotu',
                 updatedAt: 'Päivitetty',
             },
+            notifications: {
+                created: 'Mallipohja luotu',
+                updated: 'Mallipohja päivitetty',
+                deleted: 'Mallipohja poistettu',
+                error: {
+                    create: 'Virhe mallipohjan luonnissa',
+                    update: 'Virhe mallipohjan päivityksessä',
+                    delete: 'Virhe mallipohjan poistossa'
+                }
+            },
             test: {
                 title: 'Testaa mallipohjaa: %{name}',
                 action: 'Testaa',
@@ -86,6 +106,16 @@ const messages: { [key: string]: TranslationMessages } = {
                 content: 'Innehåll',
                 createdAt: 'Skapad',
                 updatedAt: 'Uppdaterad',
+            },
+            notifications: {
+                created: 'Mall skapad',
+                updated: 'Mall uppdaterad',
+                deleted: 'Mall raderad',
+                error: {
+                    create: 'Fel vid skapande av mall',
+                    update: 'Fel vid uppdatering av mall',
+                    delete: 'Fel vid borttagning av mall'
+                }
             },
             test: {
                 title: 'Testa mall: %{name}',

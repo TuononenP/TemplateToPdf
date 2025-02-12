@@ -49,12 +49,13 @@ public class TemplatesController(ITemplatesService templatesService) : Controlle
 
     // PUT: api/templates/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateTemplate(int id, Template template)
+    public async Task<ActionResult<Template>> UpdateTemplate(int id, Template template)
     {
         try
         {
             await _templatesService.UpdateTemplateAsync(id, template);
-            return NoContent();
+            var updated = await _templatesService.GetTemplateAsync(id);
+            return Ok(updated);
         }
         catch (KeyNotFoundException)
         {
