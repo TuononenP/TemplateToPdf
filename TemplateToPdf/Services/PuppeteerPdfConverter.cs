@@ -2,23 +2,19 @@ using Microsoft.Extensions.Logging;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 using TemplateToPdf.Interfaces;
+using TemplateToPdf.Models;
 
 namespace TemplateToPdf.Services;
 
 /// <summary>
 /// Implements PDF conversion using PuppeteerSharp (Chrome/Chromium)
 /// </summary>
-public class PuppeteerPdfConverter : IHtmlToPdfConverter, IAsyncDisposable
+public class PuppeteerPdfConverter(ILogger<PuppeteerPdfConverter> logger) : IHtmlToPdfConverter, IAsyncDisposable
 {
-    private readonly ILogger<PuppeteerPdfConverter> _logger;
+    private readonly ILogger<PuppeteerPdfConverter> _logger = logger;
     private IBrowser? _browser;
     private bool _isInitialized;
     private readonly SemaphoreSlim _initializationLock = new(1, 1);
-
-    public PuppeteerPdfConverter(ILogger<PuppeteerPdfConverter> logger)
-    {
-        _logger = logger;
-    }
 
     private async Task EnsureInitializedAsync()
     {
@@ -53,7 +49,7 @@ public class PuppeteerPdfConverter : IHtmlToPdfConverter, IAsyncDisposable
         }
     }
 
-    public async Task<byte[]> ConvertHtmlToPdfAsync(string html)
+    public async Task<byte[]> ConvertHtmlToPdfAsync(string html, PageSize pageSize)
     {
         await EnsureInitializedAsync();
 
@@ -71,11 +67,13 @@ public class PuppeteerPdfConverter : IHtmlToPdfConverter, IAsyncDisposable
         // Wait a bit to ensure all content is rendered
         await page.WaitForTimeoutAsync(2000);
 
+        var paperFormat = GetPaperFormat(pageSize);
+
         _logger.LogDebug("Generating PDF");
         var pdfBytes = await page.PdfDataAsync(new PdfOptions
         {
-            Format = PaperFormat.A4,
-            PrintBackground = true,
+            Format = paperFormat,
+            PrintBackground = false,
             PreferCSSPageSize = true,
             MarginOptions = new MarginOptions
             {
@@ -100,5 +98,23 @@ public class PuppeteerPdfConverter : IHtmlToPdfConverter, IAsyncDisposable
 
         _initializationLock.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private static PaperFormat GetPaperFormat(PageSize pageSize)
+    {
+        return pageSize switch
+        {
+            PageSize.A0 => PaperFormat.A0,
+            PageSize.A1 => PaperFormat.A1,
+            PageSize.A2 => PaperFormat.A2,
+            PageSize.A3 => PaperFormat.A3,
+            PageSize.A4 => PaperFormat.A4,
+            PageSize.A5 => PaperFormat.A5,
+            PageSize.A6 => PaperFormat.A6,
+            PageSize.Letter => PaperFormat.Letter,
+            PageSize.Legal => PaperFormat.Legal,
+            PageSize.Tabloid => PaperFormat.Tabloid,
+            _ => PaperFormat.A4,
+        };
     }
 } 

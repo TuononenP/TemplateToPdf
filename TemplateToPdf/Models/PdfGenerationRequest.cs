@@ -4,11 +4,32 @@ using System.Text.Json;
 
 namespace TemplateToPdf.Models;
 
+public enum PageSize
+{
+    A0,
+    A1,
+    A2,
+    A3,
+    A4,
+    A5,
+    A6,
+    Letter,
+    Legal,
+    Tabloid
+}
+
+public class Configuration
+{
+    public bool Sanitize { get; set; } = true;
+    public PageSize PageSize { get; set; } = PageSize.A4;
+}
+
 public class PdfGenerationRequest
 {
     public required string Template { get; set; }
     public required object Model { get; set; }
     public string Filename { get; set; } = "ExamplePDF";
+    public Configuration Options { get; set; } = new();
 }
 
 public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerationRequest>
@@ -25,7 +46,12 @@ public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerati
                     ""title"": ""Hello"",
                     ""content"": ""World!""
                 }"),
-                Filename = "simple-example"
+                Filename = "simple-example",
+                Options = new Configuration
+                {
+                    Sanitize = true,
+                    PageSize = PageSize.A4
+                }
             }
         );
 
@@ -93,7 +119,31 @@ public class PdfGenerationRequestExample : IMultipleExamplesProvider<PdfGenerati
                     ],
                     ""total"": 69.97
                 }"),
-                Filename = "invoice-example"
+                Filename = "invoice-example",
+                Options = new Configuration
+                {
+                    Sanitize = true,
+                    PageSize = PageSize.Letter
+                }
+            }
+        );
+
+        yield return SwaggerExample.Create(
+            "Raw HTML Example",
+            "Example with sanitization disabled to allow raw HTML content",
+            new PdfGenerationRequest
+            {
+                Template = @"<html><body><h1>{{title}}</h1><div>{{{rawHtmlContent}}}</div></body></html>",
+                Model = JsonSerializer.Deserialize<JsonElement>(@"{
+                    ""title"": ""Raw HTML Example"",
+                    ""rawHtmlContent"": ""<div style='color: red;'><strong>This HTML</strong> will not be sanitized</div>""
+                }"),
+                Filename = "raw-html-example",
+                Options = new Configuration
+                {
+                    Sanitize = false,
+                    PageSize = PageSize.A4
+                }
             }
         );
     }

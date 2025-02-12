@@ -58,7 +58,9 @@ For other Linux distributions:
 ```bash
 dotnet run --project TemplateToPdf/TemplateToPdf.csproj
 ```
-4. Open your browser and navigate to `https://localhost:5001` to access the Swagger UI
+4. The API will be available at:
+   - HTTP: http://localhost:6050
+   - HTTPS: https://localhost:6051
 
 ## API Usage
 
@@ -66,8 +68,9 @@ The API provides a single endpoint for generating PDFs from Handlebars templates
 
 ### Simple Example
 ```bash
-curl -X POST "https://localhost:5001/api/pdf/generate" \
+curl -k -X POST "https://localhost:6051/api/pdf/generate" \
   -H "Content-Type: application/json" \
+  -H "Accept: application/pdf" \
   -d '{
     "template": "<html><body><h1>{{title}}</h1><p>{{content}}</p></body></html>",
     "model": {
@@ -75,13 +78,15 @@ curl -X POST "https://localhost:5001/api/pdf/generate" \
         "content": "World!"
     },
     "filename": "simple-example"
-}'
+  }' \
+  -o output.pdf
 ```
 
 ### Complex Invoice Example
 ```bash
-curl -X POST "https://localhost:5001/api/pdf/generate" \
+curl -k -X POST "https://localhost:6051/api/pdf/generate" \
   -H "Content-Type: application/json" \
+  -H "Accept: application/pdf" \
   -d '{
     "template": "<html><body><h1>{{company.name}}</h1><h2>Invoice #{{invoiceNumber}}</h2><div class=\"customer-info\"><p>Customer: {{customer.name}}</p><p>Date: {{formatDate date \"MM/dd/yyyy\"}}</p></div><table><thead><tr><th>Item</th><th>Quantity</th><th>Price</th></tr></thead><tbody>{{#each items}}<tr><td>{{name}}</td><td>{{quantity}}</td><td>${{price}}</td></tr>{{/each}}</tbody><tfoot><tr><td colspan=\"2\">Total:</td><td>${{total}}</td></tr></tfoot></table></body></html>",
     "model": {
@@ -108,23 +113,30 @@ curl -X POST "https://localhost:5001/api/pdf/generate" \
         "total": 69.97
     },
     "filename": "invoice-example"
-}'
+  }' \
+  -o invoice.pdf
 ```
 
-The response will be a PDF file with the rendered template. The `Content-Disposition` header will include the specified filename with a `.pdf` extension.
+### Important Notes
+- Use HTTPS endpoint (port 6051) for secure communication
+- Include the `-k` flag to accept self-signed certificates in development
+- Use the `-o` flag to save the PDF output to a file
+- The response will be a binary PDF file
+- Maximum request size is 100MB
+- Response is cached for 1 minute
+- The `Content-Disposition` header will include the specified filename with a `.pdf` extension
 
 ### Response Headers
 ```
 Content-Type: application/pdf
 Content-Disposition: attachment; filename=example.pdf
+Cache-Control: public,max-age=60
 ```
 
-### Notes
-- The API endpoint is `POST /api/pdf/generate`
-- The request body must be JSON with the following fields:
+### API Endpoint Details
+- Method: POST
+- Path: `/api/pdf/generate`
+- Request Body:
   - `template`: HTML template with Handlebars expressions
   - `model`: Data model for the template
-  - `filename`: Optional filename for the generated PDF (defaults to "ExamplePDF")
-- The response is a binary PDF file
-- Maximum request size is 100MB
-- Response is cached for 1 minute 
+  - `filename`: Optional filename for the generated PDF (defaults to "ExamplePDF") 

@@ -1,21 +1,17 @@
 using Wkhtmltopdf.NetCore;
 using TemplateToPdf.Interfaces;
+using TemplateToPdf.Models;
 
 namespace TemplateToPdf.Services;
 
 /// <summary>
 /// Implements PDF conversion using wkhtmltopdf
 /// </summary>
-public class WkhtmlToPdfConverter : IHtmlToPdfConverter
+public class WkhtmlToPdfConverter(IGeneratePdf pdfGenerator) : IHtmlToPdfConverter
 {
-    private readonly IGeneratePdf _pdfGenerator;
+    private readonly IGeneratePdf _pdfGenerator = pdfGenerator;
 
-    public WkhtmlToPdfConverter(IGeneratePdf pdfGenerator)
-    {
-        _pdfGenerator = pdfGenerator;
-    }
-
-    public async Task<byte[]> ConvertHtmlToPdfAsync(string html)
+    public async Task<byte[]> ConvertHtmlToPdfAsync(string html, PageSize pageSize)
     {
         return await _pdfGenerator.GetByteArrayViewInHtml(html);
     }

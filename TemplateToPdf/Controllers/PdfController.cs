@@ -11,16 +11,10 @@ namespace TemplateToPdf.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PdfController : ControllerBase
+public class PdfController(IPdfGenerationService pdfService, ILogger<PdfController> logger) : ControllerBase
 {
-    private readonly IPdfGenerationService _pdfService;
-    private readonly ILogger<PdfController> _logger;
-
-    public PdfController(IPdfGenerationService pdfService, ILogger<PdfController> logger)
-    {
-        _pdfService = pdfService;
-        _logger = logger;
-    }
+    private readonly IPdfGenerationService _pdfService = pdfService;
+    private readonly ILogger<PdfController> _logger = logger;
 
     /// <summary>
     /// Generates a PDF document from a Handlebars template and data model
@@ -44,7 +38,10 @@ public class PdfController : ControllerBase
         {
             _logger.LogInformation("Starting PDF generation for file: {Filename}", request.Filename);
             
-            var pdfBytes = await _pdfService.GeneratePdfFromTemplateAsync(request.Template, request.Model);
+            var pdfBytes = await _pdfService.GeneratePdfFromTemplateAsync(
+                request.Template, 
+                request.Model, 
+                request.Options);
             
             _logger.LogInformation("Successfully generated PDF: {Filename}, Size: {Size} bytes", 
                 request.Filename, pdfBytes.Length);
