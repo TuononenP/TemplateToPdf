@@ -8,8 +8,13 @@ import {
     TextInput,
     CreateButton,
     TopToolbar,
-    useRecordContext
+    useRecordContext,
+    useTranslate,
 } from 'react-admin';
+import { Button } from '@mui/material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { useState } from 'react';
+import { TemplateTestDialog } from './TemplateTestDialog';
 
 const ListActions = () => (
     <TopToolbar>
@@ -32,6 +37,31 @@ const DeleteWithConfirmation = () => {
     );
 };
 
+const TestButton = () => {
+    const record = useRecordContext();
+    const [open, setOpen] = useState(false);
+    const translate = useTranslate();
+
+    if (!record) return null;
+
+    return (
+        <>
+            <Button
+                onClick={() => setOpen(true)}
+                startIcon={<PlayArrowIcon />}
+                size="small"
+            >
+                {translate('templates.test.action')}
+            </Button>
+            <TemplateTestDialog
+                open={open}
+                onClose={() => setOpen(false)}
+                template={record}
+            />
+        </>
+    );
+};
+
 export const TemplateList = () => (
     <List
         actions={<ListActions />}
@@ -43,6 +73,7 @@ export const TemplateList = () => (
             <TextField source="name" label="Name" />
             <DateField source="createdAt" showTime label="Created" />
             <DateField source="updatedAt" showTime label="Updated" />
+            <TestButton />
             <EditButton />
             <DeleteWithConfirmation />
         </Datagrid>

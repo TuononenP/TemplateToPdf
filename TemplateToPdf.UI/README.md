@@ -76,16 +76,6 @@ src/
 
 The project uses Prettier for code formatting. Configuration is in `.prettierrc`:
 
-```json
-{
-    "semi": true,
-    "tabWidth": 4,
-    "printWidth": 100,
-    "singleQuote": true,
-    "trailingComma": "es5"
-}
-```
-
 ### Adding New Features
 
 1. Create new components in the appropriate directory under `src/components/`

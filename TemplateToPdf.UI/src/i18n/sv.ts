@@ -169,16 +169,23 @@ const swedishMessages: TranslationMessages = {
             help: 'Filtrera listan och spara sökningen för senare'
         }
     },
-    resources: {
-        templates: {
-            name: 'Mall |||| Mallar',
-            fields: {
-                id: 'ID',
-                name: 'Namn',
-                content: 'Innehåll',
-                createdAt: 'Skapad',
-                updatedAt: 'Uppdaterad',
-            },
+    templates: {
+        name: 'Mall |||| Mallar',
+        fields: {
+            id: 'ID',
+            name: 'Namn',
+            content: 'Innehåll',
+            createdAt: 'Skapad',
+            updatedAt: 'Uppdaterad',
+        },
+        test: {
+            title: 'Testa mall: %{name}',
+            action: 'Testa',
+            template: 'Mall',
+            model: 'Datamodell',
+            success: 'PDF skapad',
+            error: 'Kunde inte skapa PDF',
+            invalidJson: 'Ogiltig JSON i datamodellen',
         },
     },
     settings: {

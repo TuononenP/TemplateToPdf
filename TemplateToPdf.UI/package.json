@@ -11,6 +11,7 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "query-string": "^9.1.1",
+    "ra-core": "^4.16.20",
     "ra-data-json-server": "^4.16.20",
     "ra-i18n-polyglot": "^5.5.3",
     "ra-language-english": "^5.5.3",

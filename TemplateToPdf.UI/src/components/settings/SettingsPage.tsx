@@ -28,6 +28,9 @@ const SettingsPage = () => {
 
     const handleLanguageChange = (language: Language) => {
         setSettings(prev => ({ ...prev, language }));
+        localStorage.setItem('language', language);
+        // Force reload to apply the new language
+        window.location.reload();
     };
 
     const handleSave = () => {

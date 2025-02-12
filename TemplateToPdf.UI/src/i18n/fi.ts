@@ -169,16 +169,23 @@ const finnishMessages: TranslationMessages = {
             help: 'Suodata listaa ja tallenna haku myöhempää käyttöä varten'
         }
     },
-    resources: {
-        templates: {
-            name: 'Mallipohja |||| Mallipohjat',
-            fields: {
-                id: 'ID',
-                name: 'Nimi',
-                content: 'Sisältö',
-                createdAt: 'Luotu',
-                updatedAt: 'Päivitetty',
-            },
+    templates: {
+        name: 'Mallipohja |||| Mallipohjat',
+        fields: {
+            id: 'ID',
+            name: 'Nimi',
+            content: 'Sisältö',
+            createdAt: 'Luotu',
+            updatedAt: 'Päivitetty',
+        },
+        test: {
+            title: 'Testaa mallipohjaa: %{name}',
+            action: 'Testaa',
+            template: 'Mallipohja',
+            model: 'Tietomalli',
+            success: 'PDF luotu onnistuneesti',
+            error: 'PDF:n luonti epäonnistui',
+            invalidJson: 'Virheellinen JSON tietomallissa',
         },
     },
     settings: {
