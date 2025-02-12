@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -26,44 +26,153 @@ interface TemplateTestDialogProps {
     template: { id: number | string; name?: string; content?: string };
 }
 
-const simpleModel = {
-    title: "Example Title",
-    content: "Example content for testing the template."
+const generateModelFromTemplate = (template: string): any => {
+    const model: any = {};
+    const regex = /{{[#/]?([^}]+)}}/g;
+    const eachBlocksContent = new Map<string, Set<string>>();
+    
+    // First pass: collect all properties used within each blocks
+    const eachRegex = /{{#each\s+([^}]+)}}([\s\S]*?){{\/each}}/g;
+    let eachMatch;
+    while ((eachMatch = eachRegex.exec(template)) !== null) {
+        const arrayPath = eachMatch[1].trim();
+        const blockContent = eachMatch[2];
+        const properties = new Set<string>();
+        
+        let propMatch;
+        const propRegex = /{{([^#/][^}]+)}}/g;
+        while ((propMatch = propRegex.exec(blockContent)) !== null) {
+            properties.add(propMatch[1].trim());
+        }
+        
+        eachBlocksContent.set(arrayPath, properties);
+    }
+
+    // Second pass: process all expressions
+    let match;
+    while ((match = regex.exec(template)) !== null) {
+        const path = match[1].trim();
+        
+        // Skip each/closing tags and helper functions
+        if (path.startsWith('each ') || path.startsWith('/') || path.includes(' ') || path === 'each') {
+            // Handle date fields referenced in formatDate
+            if (path.startsWith('formatDate ')) {
+                const parts = path.split(' ');
+                if (parts.length > 1) {
+                    const datePath = parts[1];
+                    if (!getNestedValue(model, datePath)) {
+                        setNestedValue(model, datePath, new Date().toISOString());
+                    }
+                }
+            }
+            continue;
+        }
+
+        // Handle nested paths
+        const parts = path.split('.');
+        let current = model;
+        
+        // If this property is part of an each block, skip it
+        let isInEachBlock = false;
+        for (const [, properties] of Array.from(eachBlocksContent.entries())) {
+            if (properties.has(path)) {
+                isInEachBlock = true;
+                break;
+            }
+        }
+        
+        if (!isInEachBlock) {
+            for (let i = 0; i < parts.length - 1; i++) {
+                const part = parts[i];
+                if (!(part in current)) {
+                    current[part] = {};
+                }
+                current = current[part];
+            }
+
+            const lastPart = parts[parts.length - 1];
+            if (!(lastPart in current)) {
+                current[lastPart] = `Example ${lastPart}`;
+            }
+        }
+    }
+
+    // Create arrays for each blocks with example items
+    for (const [arrayPath, properties] of Array.from(eachBlocksContent.entries())) {
+        const parts = arrayPath.split('.');
+        let current = model;
+        
+        // Create nested structure for array
+        for (let i = 0; i < parts.length - 1; i++) {
+            const part = parts[i];
+            if (!(part in current)) {
+                current[part] = {};
+            }
+            current = current[part];
+        }
+
+        const lastPart = parts[parts.length - 1];
+        // Create example array with two items using the actual properties
+        const item1: any = {};
+        const item2: any = {};
+        
+        for (const prop of Array.from(properties)) {
+            item1[prop] = `Example ${prop} 1`;
+            item2[prop] = `Example ${prop} 2`;
+        }
+
+        current[lastPart] = [item1, item2];
+    }
+
+    return model;
 };
 
-const invoiceModel = {
-    company: {
-        name: "ACME Corp"
-    },
-    invoiceNumber: "INV-2024-001",
-    customer: {
-        name: "John Doe"
-    },
-    date: new Date().toISOString(),
-    items: [
-        {
-            name: "Widget A",
-            quantity: 2,
-            price: 19.99
-        },
-        {
-            name: "Widget B",
-            quantity: 1,
-            price: 29.99
+// Helper functions
+const getNestedValue = (obj: any, path: string): any => {
+    const parts = path.split('.');
+    let current = obj;
+    
+    for (const part of parts) {
+        if (current === undefined || current === null) return undefined;
+        current = current[part];
+    }
+    
+    return current;
+};
+
+const setNestedValue = (obj: any, path: string, value: any) => {
+    const parts = path.split('.');
+    let current = obj;
+    
+    for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i];
+        if (!(part in current)) {
+            current[part] = {};
         }
-    ],
-    total: 69.97
+        current = current[part];
+    }
+    
+    current[parts[parts.length - 1]] = value;
 };
 
 export const TemplateTestDialog = ({ open, onClose, template }: TemplateTestDialogProps) => {
-    const [model, setModel] = useState(() => {
-        const initialModel = template.id === 1 ? invoiceModel : simpleModel;
-        return JSON.stringify(initialModel, null, 2);
-    });
+    const [model, setModel] = useState('{}');
     const [loading, setLoading] = useState(false);
     const notify = useNotify();
     const translate = useTranslate();
     const theme = localStorage.getItem('theme') || 'light';
+
+    useEffect(() => {
+        if (template.content) {
+            try {
+                const generatedModel = generateModelFromTemplate(template.content);
+                setModel(JSON.stringify(generatedModel, null, 2));
+            } catch (error) {
+                console.error('Error generating model:', error);
+                notify('Error generating model from template', { type: 'error' });
+            }
+        }
+    }, [template.content, notify]);
 
     const handleTest = async () => {
         try {
@@ -196,7 +305,7 @@ export const TemplateTestDialog = ({ open, onClose, template }: TemplateTestDial
                     color="primary"
                     disabled={loading || !model}
                 >
-                    {loading ? <CircularProgress size={24} /> : translate('templates.test.action')}
+                    {loading ? <CircularProgress size={24} /> : translate('templates.test.download')}
                 </Button>
             </DialogActions>
         </Dialog>

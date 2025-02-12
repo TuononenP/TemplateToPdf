@@ -24,6 +24,8 @@ const messages: { [key: string]: TranslationMessages } = {
                 content: 'Content',
                 createdAt: 'Created At',
                 updatedAt: 'Updated At',
+                model: 'Data Model',
+                modelForPreview: 'Data Model for Preview',
             },
             notifications: {
                 created: 'Template created',
@@ -35,9 +37,15 @@ const messages: { [key: string]: TranslationMessages } = {
                     delete: 'Error deleting template'
                 }
             },
+            preview: {
+                title: 'Preview',
+                refresh: 'Refresh preview',
+                error: 'Preview error'
+            },
             test: {
                 title: 'Test template: %{name}',
                 action: 'Test',
+                download: 'Download PDF',
                 template: 'Template',
                 model: 'Data Model',
                 success: 'PDF generated successfully',
@@ -65,6 +73,8 @@ const messages: { [key: string]: TranslationMessages } = {
                 content: 'Sisältö',
                 createdAt: 'Luotu',
                 updatedAt: 'Päivitetty',
+                model: 'Tietomalli',
+                modelForPreview: 'Esikatselun tietomalli',
             },
             notifications: {
                 created: 'Mallipohja luotu',
@@ -76,9 +86,15 @@ const messages: { [key: string]: TranslationMessages } = {
                     delete: 'Virhe mallipohjan poistossa'
                 }
             },
+            preview: {
+                title: 'Esikatselu',
+                refresh: 'Päivitä esikatselu',
+                error: 'Esikatselu-virhe'
+            },
             test: {
                 title: 'Testaa mallipohjaa: %{name}',
                 action: 'Testaa',
+                download: 'Lataa PDF',
                 template: 'Mallipohja',
                 model: 'Tietomalli',
                 success: 'PDF luotu onnistuneesti',
@@ -106,6 +122,8 @@ const messages: { [key: string]: TranslationMessages } = {
                 content: 'Innehåll',
                 createdAt: 'Skapad',
                 updatedAt: 'Uppdaterad',
+                model: 'Datamodell',
+                modelForPreview: 'Förhandsgranskningens datamodell',
             },
             notifications: {
                 created: 'Mall skapad',
@@ -117,9 +135,15 @@ const messages: { [key: string]: TranslationMessages } = {
                     delete: 'Fel vid borttagning av mall'
                 }
             },
+            preview: {
+                title: 'Förhandsgranskning',
+                refresh: 'Uppdatera förhandsgranskning',
+                error: 'Förhandsgranskning-fel'
+            },
             test: {
                 title: 'Testa mall: %{name}',
                 action: 'Testa',
+                download: 'Ladda ner PDF',
                 template: 'Mall',
                 model: 'Datamodell',
                 success: 'PDF skapad',
