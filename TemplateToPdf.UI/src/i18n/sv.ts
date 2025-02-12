@@ -3,8 +3,8 @@ import { TranslationMessages } from 'ra-core';
 const swedishMessages: TranslationMessages = {
     ra: {
         action: {
-            add: 'Lägg till',
             add_filter: 'Lägg till filter',
+            add: 'Lägg till',
             back: 'Tillbaka',
             bulk_actions: '%{smart_count} vald',
             cancel: 'Avbryt',
@@ -29,6 +29,7 @@ const swedishMessages: TranslationMessages = {
             show: 'Visa',
             sort: 'Sortera',
             undo: 'Ångra',
+            unselect: 'Avmarkera',
             expand: 'Expandera',
             close: 'Stäng',
             open_menu: 'Öppna meny',
@@ -39,9 +40,8 @@ const swedishMessages: TranslationMessages = {
             open: 'Öppna',
             toggle_theme: 'Växla tema',
             select_row: 'Välj rad',
-            update_application: 'Uppdatera applikation',
-            unselect: 'Avmarkera',
-            select_columns: 'Välj kolumner'
+            select_columns: 'Välj kolumner',
+            update_application: 'Uppdatera applikation'
         },
         boolean: {
             true: 'Ja',
@@ -51,16 +51,20 @@ const swedishMessages: TranslationMessages = {
         page: {
             create: 'Skapa %{name}',
             dashboard: 'Dashboard',
-            edit: '%{name} #%{id}',
+            edit: '%{name} %{recordRepresentation}',
             error: 'Något gick fel',
             list: '%{name}',
             loading: 'Laddar',
             not_found: 'Hittades inte',
-            show: '%{name} #%{id}',
+            show: '%{name} %{recordRepresentation}',
             empty: 'Ingen %{name} ännu.',
             invite: 'Vill du lägga till en?',
+            access_denied: 'Åtkomst nekad',
+            authentication_error: 'Autentiseringsfel',
         },
         navigation: {
+            clear_filters: 'Rensa filter',
+            no_filtered_results: 'Inga %{name} hittades med nuvarande filter.',
             no_results: 'Inga resultat',
             no_more_results: 'Sidan %{page} finns inte. Försök föregående.',
             page_out_of_boundaries: 'Sida %{page} utanför gränserna',
@@ -68,15 +72,19 @@ const swedishMessages: TranslationMessages = {
             page_out_from_begin: 'Kan inte gå före sida 1',
             page_range_info: '%{offsetBegin}-%{offsetEnd} av %{total}',
             partial_page_range_info: '%{offsetBegin}-%{offsetEnd} av fler än %{offsetEnd}',
-            page_rows_per_page: 'Rader per sida:',
             current_page: 'Sida %{page}',
             page: 'Gå till sida %{page}',
             first: 'Gå till första sidan',
             last: 'Gå till sista sidan',
-            next: 'Nästa',
-            prev: 'Föregående',
-            previous: 'Föregående',
+            next: 'Nästa sida',
+            previous: 'Föregående sida',
+            page_rows_per_page: 'Rader per sida:',
             skip_nav: 'Gå till innehåll'
+        },
+        sort: {
+            sort_by: 'Sortera efter %{field_lower_first} %{order}',
+            ASC: 'stigande',
+            DESC: 'fallande'
         },
         auth: {
             auth_check_error: 'Logga in för att fortsätta',
@@ -85,7 +93,7 @@ const swedishMessages: TranslationMessages = {
             password: 'Lösenord',
             sign_in: 'Logga in',
             sign_in_error: 'Autentisering misslyckades, försök igen',
-            logout: 'Logga ut',
+            logout: 'Logga ut'
         },
         notification: {
             updated: 'Element uppdaterat |||| %{smart_count} element uppdaterade',
@@ -99,7 +107,20 @@ const swedishMessages: TranslationMessages = {
             canceled: 'Åtgärd avbruten',
             logged_out: 'Din session har avslutats, vänligen återanslut.',
             not_authorized: 'Du har inte behörighet till denna resurs.',
-            application_update_available: 'En ny version är tillgänglig.'
+            application_update_available: 'En ny version är tillgänglig.',
+            select_all_limit_reached: 'Det finns för många element att välja. Endast de första %{max} elementen valdes.'
+        },
+        validation: {
+            required: 'Obligatorisk',
+            minLength: 'Måste vara minst %{min} tecken',
+            maxLength: 'Kan vara högst %{max} tecken',
+            minValue: 'Måste vara minst %{min}',
+            maxValue: 'Kan vara högst %{max}',
+            number: 'Måste vara ett nummer',
+            email: 'Måste vara en giltig e-postadress',
+            oneOf: 'Måste vara en av: %{options}',
+            regex: 'Måste matcha ett specifikt format (regexp): %{pattern}',
+            unique: 'Måste vara unik'
         },
         input: {
             file: {
@@ -141,22 +162,6 @@ const swedishMessages: TranslationMessages = {
             no_results: 'Inga resultat hittades.',
             unsaved_changes: 'Vissa av dina ändringar har inte sparats. Är du säker på att du vill ignorera dem?'
         },
-        sort: {
-            sort_by: 'Sortera efter %{field} %{order}',
-            ASC: 'stigande',
-            DESC: 'fallande'
-        },
-        validation: {
-            required: 'Obligatorisk',
-            minLength: 'Måste vara minst %{min} tecken',
-            maxLength: 'Kan vara högst %{max} tecken',
-            minValue: 'Måste vara minst %{min}',
-            maxValue: 'Kan vara högst %{max}',
-            number: 'Måste vara ett nummer',
-            email: 'Måste vara en giltig e-postadress',
-            oneOf: 'Måste vara en av: %{options}',
-            regex: 'Måste matcha ett specifikt format (regexp): %{pattern}'
-        },
         saved_queries: {
             label: 'Sparade sökningar',
             query_name: 'Sökningens namn',
@@ -167,35 +172,32 @@ const swedishMessages: TranslationMessages = {
             remove_dialog_title: 'Ta bort sparad sökning?',
             remove_message: 'Är du säker på att du vill ta bort den här sparade sökningen?',
             help: 'Filtrera listan och spara sökningen för senare'
+        },
+        configurable: {
+            customize: 'Anpassa',
+            configureMode: 'Konfigurera denna sida',
+            inspector: {
+                title: 'Inspektör',
+                content: 'Hovra över gränssnittselement för att konfigurera dem',
+                reset: 'Återställ inställningar',
+                hideAll: 'Dölj alla',
+                showAll: 'Visa alla'
+            },
+            Datagrid: {
+                title: 'Datatabell',
+                unlabeled: 'Omärkt kolumn #%{column}'
+            },
+            SimpleForm: {
+                title: 'Formulär',
+                unlabeled: 'Omärkt inmatning #%{input}'
+            },
+            SimpleList: {
+                title: 'Lista',
+                primaryText: 'Primär text',
+                secondaryText: 'Sekundär text',
+                tertiaryText: 'Tertiär text'
+            }
         }
-    },
-    templates: {
-        name: 'Mall |||| Mallar',
-        fields: {
-            id: 'ID',
-            name: 'Namn',
-            content: 'Innehåll',
-            createdAt: 'Skapad',
-            updatedAt: 'Uppdaterad',
-        },
-        test: {
-            title: 'Testa mall: %{name}',
-            action: 'Testa',
-            template: 'Mall',
-            model: 'Datamodell',
-            success: 'PDF skapad',
-            error: 'Kunde inte skapa PDF',
-            invalidJson: 'Ogiltig JSON i datamodellen',
-        },
-    },
-    settings: {
-        title: 'Inställningar',
-        language: 'Språk',
-        theme: 'Tema',
-        themes: {
-            light: 'Ljust',
-            dark: 'Mörkt',
-        },
     },
 };
 

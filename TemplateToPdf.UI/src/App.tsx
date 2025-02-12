@@ -1,5 +1,5 @@
 import { Admin, Resource, CustomRoutes } from 'react-admin';
-import { i18nProvider } from './i18nProvider';
+import { i18nProvider } from './i18n/i18nProvider';
 import { TemplateList, TemplateEdit, TemplateCreate } from './components/templates';
 import { SettingsPage } from './components/settings';
 import { dataProvider } from './dataProvider';

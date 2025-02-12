@@ -3,8 +3,8 @@ import { TranslationMessages } from 'ra-core';
 const finnishMessages: TranslationMessages = {
     ra: {
         action: {
-            add: 'Lisää',
             add_filter: 'Lisää suodatin',
+            add: 'Lisää',
             back: 'Takaisin',
             bulk_actions: '%{smart_count} valittu',
             cancel: 'Peruuta',
@@ -51,31 +51,34 @@ const finnishMessages: TranslationMessages = {
         page: {
             create: 'Luo %{name}',
             dashboard: 'Kojelauta',
-            edit: '%{name} #%{id}',
+            edit: '%{name} %{recordRepresentation}',
             error: 'Jotain meni pieleen',
             list: '%{name}',
             loading: 'Ladataan',
             not_found: 'Ei löytynyt',
-            show: '%{name} #%{id}',
+            show: '%{name} %{recordRepresentation}',
             empty: 'Ei vielä yhtään %{name}.',
             invite: 'Haluatko lisätä yhden?',
+            access_denied: 'Pääsy estetty',
+            authentication_error: 'Todennusvirhe',
         },
         navigation: {
+            clear_filters: 'Tyhjennä suodattimet',
+            no_filtered_results: 'Ei tuloksia nykyisillä suodattimilla.',
             no_results: 'Ei tuloksia',
-            no_more_results: 'Sivu %{page} ei ole käytettävissä. Yritä edellistä.',
+            no_more_results: 'Sivu %{page} on rajojen ulkopuolella. Kokeile edellistä sivua.',
             page_out_of_boundaries: 'Sivu %{page} rajojen ulkopuolella',
             page_out_from_end: 'Ei voi mennä viimeisen sivun jälkeen',
             page_out_from_begin: 'Ei voi mennä ennen sivua 1',
             page_range_info: '%{offsetBegin}-%{offsetEnd} / %{total}',
             partial_page_range_info: '%{offsetBegin}-%{offsetEnd} / yli %{offsetEnd}',
-            page_rows_per_page: 'Rivejä per sivu:',
             current_page: 'Sivu %{page}',
             page: 'Siirry sivulle %{page}',
             first: 'Ensimmäinen sivu',
             last: 'Viimeinen sivu',
-            next: 'Seuraava',
-            prev: 'Edellinen',
-            previous: 'Edellinen',
+            next: 'Seuraava sivu',
+            previous: 'Edellinen sivu',
+            page_rows_per_page: 'Rivejä per sivu:',
             skip_nav: 'Siirry sisältöön'
         },
         auth: {
@@ -85,7 +88,7 @@ const finnishMessages: TranslationMessages = {
             password: 'Salasana',
             sign_in: 'Kirjaudu',
             sign_in_error: 'Todentaminen epäonnistui, yritä uudelleen',
-            logout: 'Kirjaudu ulos',
+            logout: 'Kirjaudu ulos'
         },
         notification: {
             updated: 'Elementti päivitetty |||| %{smart_count} elementtiä päivitetty',
@@ -139,10 +142,11 @@ const finnishMessages: TranslationMessages = {
             invalid_form: 'Lomake ei ole kelvollinen. Tarkista virheet.',
             loading: 'Sivu latautuu, odota hetki',
             no_results: 'Tuloksia ei löytynyt.',
-            unsaved_changes: 'Joitain muutoksiasi ei ole tallennettu. Oletko varma, että haluat hylätä ne?'
+            unsaved_changes: 'Joitain muutoksiasi ei ole tallennettu. Oletko varma, että haluat hylätä ne?',
+            select_all_limit_reached: 'Elementtejä on liian monta valittavaksi. Vain ensimmäiset %{max} elementtiä valittiin.'
         },
         sort: {
-            sort_by: 'Järjestä %{field} %{order}',
+            sort_by: 'Järjestä %{field_lower_first} %{order}',
             ASC: 'nousevasti',
             DESC: 'laskevasti'
         },
@@ -155,7 +159,8 @@ const finnishMessages: TranslationMessages = {
             number: 'Täytyy olla numero',
             email: 'Täytyy olla kelvollinen sähköpostiosoite',
             oneOf: 'Täytyy olla yksi seuraavista: %{options}',
-            regex: 'Täytyy noudattaa tiettyä muotoa (regexp): %{pattern}'
+            regex: 'Täytyy noudattaa tiettyä muotoa (regexp): %{pattern}',
+            unique: 'Täytyy olla uniikki'
         },
         saved_queries: {
             label: 'Tallennetut haut',
@@ -167,35 +172,32 @@ const finnishMessages: TranslationMessages = {
             remove_dialog_title: 'Poista tallennettu haku?',
             remove_message: 'Haluatko varmasti poistaa tämän tallennetun haun?',
             help: 'Suodata listaa ja tallenna haku myöhempää käyttöä varten'
+        },
+        configurable: {
+            customize: 'Mukauta',
+            configureMode: 'Muokkaa tätä sivua',
+            inspector: {
+                title: 'Tarkastaja',
+                content: 'Vie hiiri käyttöliittymäelementtien päälle muokataksesi niitä',
+                reset: 'Palauta asetukset',
+                hideAll: 'Piilota kaikki',
+                showAll: 'Näytä kaikki'
+            },
+            Datagrid: {
+                title: 'Taulukko',
+                unlabeled: 'Nimeämätön sarake #%{column}'
+            },
+            SimpleForm: {
+                title: 'Lomake',
+                unlabeled: 'Nimeämätön kenttä #%{input}'
+            },
+            SimpleList: {
+                title: 'Lista',
+                primaryText: 'Ensisijainen teksti',
+                secondaryText: 'Toissijainen teksti',
+                tertiaryText: 'Kolmas teksti'
+            }
         }
-    },
-    templates: {
-        name: 'Mallipohja |||| Mallipohjat',
-        fields: {
-            id: 'ID',
-            name: 'Nimi',
-            content: 'Sisältö',
-            createdAt: 'Luotu',
-            updatedAt: 'Päivitetty',
-        },
-        test: {
-            title: 'Testaa mallipohjaa: %{name}',
-            action: 'Testaa',
-            template: 'Mallipohja',
-            model: 'Tietomalli',
-            success: 'PDF luotu onnistuneesti',
-            error: 'PDF:n luonti epäonnistui',
-            invalidJson: 'Virheellinen JSON tietomallissa',
-        },
-    },
-    settings: {
-        title: 'Asetukset',
-        language: 'Kieli',
-        theme: 'Teema',
-        themes: {
-            light: 'Vaalea',
-            dark: 'Tumma',
-        },
     },
 };
 
