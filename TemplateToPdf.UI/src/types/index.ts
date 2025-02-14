@@ -9,4 +9,11 @@ export enum PageSize {
     Letter = 7,
     Legal = 8,
     Tabloid = 9
+}
+
+export enum AssetType {
+    Image = 0,
+    Css = 1,
+    Font = 2,
+    PartialTemplate = 3
 } 

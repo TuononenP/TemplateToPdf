@@ -4,6 +4,9 @@ using TemplateToPdf.Interfaces;
 using HandlebarsDotNet.Extension.Json;
 using Ganss.Xss;
 using IHtmlSanitizer = TemplateToPdf.Interfaces.IHtmlSanitizer;
+using TemplateToPdf.Data.Repositories;
+using TemplateToPdf.Models;
+using HandlebarsDotNet.Runtime;
 
 namespace TemplateToPdf.Services;
 
@@ -14,22 +17,33 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
 {
     private readonly ILogger<HandlebarsTemplateRenderer> _logger;
     private readonly IHtmlSanitizer _htmlSanitizer;
-    private readonly IHandlebars _handlebars;
+    private readonly IAssetRepository _assetRepository;
+    private readonly ICustomHelperService _customHelperService;
 
-    public HandlebarsTemplateRenderer(ILogger<HandlebarsTemplateRenderer> logger, IHtmlSanitizer htmlSanitizer)
+    public HandlebarsTemplateRenderer(
+        ILogger<HandlebarsTemplateRenderer> logger, 
+        IHtmlSanitizer htmlSanitizer,
+        IAssetRepository assetRepository,
+        ICustomHelperService customHelperService)
     {
         _logger = logger;
         _htmlSanitizer = htmlSanitizer;
-        _handlebars = CreateHandlebars();
+        _assetRepository = assetRepository;
+        _customHelperService = customHelperService;
     }
 
     private IHandlebars CreateHandlebars(bool sanitize = true)
     {
-        var handlebars = Handlebars.Create();
-        handlebars.Configuration.UseJson();
+        var handlebars = HandlebarsDotNet.Handlebars.Create();
 
-        // Register all custom helpers
+        // Register built-in helpers
         HandlebarsHelpers.RegisterHelpers(handlebars);
+
+        // Register asset helpers
+        RegisterAssetHelpers(handlebars);
+
+        // Register custom helpers from database
+        _customHelperService.RegisterHelpers(handlebars);
 
         if (sanitize)
         {
@@ -95,11 +109,84 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
         return handlebars;
     }
 
+    private void RegisterAssetHelpers(IHandlebars handlebars)
+    {
+        // Helper for including CSS assets
+        handlebars.RegisterHelper("css", (context, arguments) =>
+        {
+            if (arguments.Length == 0 || arguments[0] == null)
+                return "";
+
+            var referenceName = arguments[0]?.ToString() ?? string.Empty;
+            var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
+            
+            if (asset == null || asset.Type != AssetType.Css)
+                return "";
+
+            return $"<style>{asset.Content}</style>";
+        });
+
+        // Helper for including images
+        handlebars.RegisterHelper("image", (context, arguments) =>
+        {
+            if (arguments.Length == 0 || arguments[0] == null)
+                return "";
+
+            var referenceName = arguments[0]?.ToString() ?? string.Empty;
+            var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
+            
+            if (asset == null || asset.Type != AssetType.Image)
+                return "";
+
+            return $"<img src=\"{asset.GetContentForDisplay()}\" alt=\"{asset.Name}\" />";
+        });
+
+        // Helper for including fonts
+        handlebars.RegisterHelper("font", (context, arguments) =>
+        {
+            if (arguments.Length == 0 || arguments[0] == null)
+                return "";
+
+            var referenceName = arguments[0]?.ToString() ?? string.Empty;
+            var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
+            
+            if (asset == null || asset.Type != AssetType.Font)
+                return "";
+
+            var fontName = asset.Name.Replace(" ", "_");
+            return $@"
+                <style>
+                    @font-face {{
+                        font-family: '{fontName}';
+                        src: url('{asset.Content}') format('woff2');
+                    }}
+                </style>";
+        });
+
+        // Helper for including partial templates
+        handlebars.RegisterHelper("partial", (context, arguments) =>
+        {
+            if (arguments.Length == 0 || arguments[0] == null)
+                return "";
+
+            var referenceName = arguments[0]?.ToString() ?? string.Empty;
+            var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
+            
+            if (asset == null || asset.Type != AssetType.PartialTemplate)
+                return "";
+
+            // Compile and render the partial template with the current context
+            var template = handlebars.Compile(asset.Content);
+            return template(context);
+        });
+    }
+
     public string RenderTemplate<T>(string template, T model, bool sanitize = true)
     {
         _logger.LogDebug("Template: {Template}", template);
         _logger.LogDebug("Model: {@Model}", model);
 
+        // Create a new Handlebars instance for each render to ensure latest helpers
         var handlebars = CreateHandlebars(sanitize);
         var compiledTemplate = handlebars.Compile(template);
         var result = compiledTemplate(model);

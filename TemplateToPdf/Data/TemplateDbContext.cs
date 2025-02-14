@@ -10,4 +10,6 @@ public class TemplateDbContext : DbContext
     }
 
     public DbSet<Template> Templates => Set<Template>();
+    public DbSet<Asset> Assets => Set<Asset>();
+    public DbSet<CustomHelper> CustomHelpers => Set<CustomHelper>();
 } 

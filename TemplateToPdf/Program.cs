@@ -90,9 +90,12 @@ builder.Services.AddDbContext<TemplateDbContext>(options =>
 
 // Register repositories
 builder.Services.AddScoped<ITemplateRepository, TemplateRepository>();
+builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 
 // Register services
 builder.Services.AddScoped<ITemplatesService, TemplatesService>();
+builder.Services.AddScoped<IAssetsService, AssetsService>();
+builder.Services.AddScoped<ICustomHelperService, CustomHelperService>();
 
 var app = builder.Build();
 

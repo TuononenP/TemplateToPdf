@@ -30,6 +30,45 @@ npm start
 
 The application will be available at [http://localhost:3000](http://localhost:3000).
 
+## Using Assets in Templates
+
+You can reference assets in your templates using their reference names. The reference name is automatically generated from the asset name (lowercase, hyphens instead of spaces) or can be manually specified.
+
+### Available Asset Types
+
+1. CSS Stylesheets:
+```handlebars
+{{css "main-styles"}}
+```
+
+2. Images:
+```handlebars
+{{image "company-logo"}}
+```
+
+3. Fonts:
+```handlebars
+{{font "open-sans"}}
+<div style="font-family: 'Open_Sans'">Text using custom font</div>
+```
+
+4. Partial Templates:
+```handlebars
+{{partial "invoice-header"}}
+```
+
+### Reference Name Examples
+- Asset name: "Main Stylesheet" → Reference name: "main-stylesheet"
+- Asset name: "Company Logo.png" → Reference name: "company-logo"
+- Asset name: "Open Sans Bold" → Reference name: "open-sans-bold"
+- Asset name: "Invoice Header" → Reference name: "invoice-header"
+
+### Best Practices
+- Use descriptive asset names
+- Reference names are automatically converted to URL-friendly format
+- Reference names can only contain lowercase letters, numbers, hyphens and underscores
+- Keep reference names short but meaningful
+
 ## Project Structure
 
 ```
@@ -53,6 +92,9 @@ src/
   - Create, edit, and delete HTML templates
   - Preview templates
   - Generate PDFs from templates
+- Asset Management
+  - Upload and manage CSS, images, fonts, and partial templates
+  - Reference assets in templates using friendly names
 - Multi-language Support
   - English (default)
   - Finnish

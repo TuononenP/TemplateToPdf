@@ -1,5 +1,4 @@
 import { Menu as ReactAdminMenu } from 'react-admin';
-import DescriptionIcon from '@mui/icons-material/Description';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SettingsIcon from '@mui/icons-material/Settings';
 
@@ -9,10 +8,11 @@ export const Menu = () => (
             primaryText="Dashboard"
             leftIcon={<DashboardIcon />}
         />
-        <ReactAdminMenu.Item
-            to="/templates"
-            primaryText="Templates"
-            leftIcon={<DescriptionIcon />}
+        <ReactAdminMenu.ResourceItem
+            name="templates"
+        />
+        <ReactAdminMenu.ResourceItem
+            name="assets"
         />
         <ReactAdminMenu.Item
             to="/settings"

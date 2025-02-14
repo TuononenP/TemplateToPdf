@@ -2,10 +2,12 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using TemplateToPdf.Interfaces;
 using TemplateToPdf.Services;
+using TemplateToPdf.Data.Repositories;
 using Xunit;
 using System.Globalization;
 using System.Text.Json;
 using TemplateToPdf.Models;
+using HandlebarsDotNet;
 
 namespace TemplateToPdf.Tests;
 
@@ -15,6 +17,8 @@ public class PdfGenerationTests
     private readonly Mock<ILogger<PdfGenerationService>> _serviceLoggerMock;
     private readonly Mock<IHtmlToPdfConverter> _pdfConverterMock;
     private readonly Mock<IHtmlSanitizer> _htmlSanitizerMock;
+    private readonly Mock<IAssetRepository> _assetRepositoryMock;
+    private readonly Mock<ICustomHelperService> _customHelperServiceMock;
     private readonly ITemplateRenderer _templateRenderer;
     private readonly PdfGenerationService _pdfService;
 
@@ -22,12 +26,16 @@ public class PdfGenerationTests
         Mock<ILogger<HandlebarsTemplateRenderer>>? loggerMock = null,
         Mock<ILogger<PdfGenerationService>>? serviceLoggerMock = null,
         Mock<IHtmlToPdfConverter>? pdfConverterMock = null,
-        Mock<IHtmlSanitizer>? htmlSanitizerMock = null)
+        Mock<IHtmlSanitizer>? htmlSanitizerMock = null,
+        Mock<IAssetRepository>? assetRepositoryMock = null,
+        Mock<ICustomHelperService>? customHelperServiceMock = null)
     {
         _loggerMock = loggerMock ?? new();
         _serviceLoggerMock = serviceLoggerMock ?? new();
         _pdfConverterMock = pdfConverterMock ?? new();
         _htmlSanitizerMock = htmlSanitizerMock ?? new();
+        _assetRepositoryMock = assetRepositoryMock ?? new();
+        _customHelperServiceMock = customHelperServiceMock ?? new();
 
         // Setup HTML sanitizer to preserve structure while removing dangerous content
         _htmlSanitizerMock
@@ -51,7 +59,31 @@ public class PdfGenerationTests
                 return sanitized;
             });
 
-        _templateRenderer = new HandlebarsTemplateRenderer(_loggerMock.Object, _htmlSanitizerMock.Object);
+        // Setup asset repository mock
+        _assetRepositoryMock
+            .Setup(x => x.GetAssetByReferenceNameAsync(It.IsAny<string>()))
+            .ReturnsAsync((Asset?)null);
+
+        // Setup custom helper service mock
+        _customHelperServiceMock
+            .Setup(x => x.RegisterHelpers(It.IsAny<IHandlebars>()))
+            .Callback<IHandlebars>(handlebars =>
+            {
+                handlebars.RegisterTemplate("repeat", (writer, context, parameters) =>
+                {
+                    var args = parameters as object[] ?? Array.Empty<object>();
+                    var text = args.FirstOrDefault()?.ToString() ?? string.Empty;
+                    var count = int.Parse(args.Skip(1).FirstOrDefault()?.ToString() ?? "1");
+                    writer.Write(string.Concat(Enumerable.Repeat(text, count)));
+                });
+            });
+
+        _templateRenderer = new HandlebarsTemplateRenderer(
+            _loggerMock.Object,
+            _htmlSanitizerMock.Object,
+            _assetRepositoryMock.Object,
+            _customHelperServiceMock.Object);
+
         _pdfService = new PdfGenerationService(
             _pdfConverterMock.Object,
             _templateRenderer,
@@ -338,6 +370,73 @@ public class PdfGenerationTests
                 "onerror=", "onclick=",
                 "alert('xss in title')", "alert(1)", "alert(2)" 
             ]
+        );
+    }
+
+    [Fact]
+    public Task GeneratePdf_WithCustomHelper_ShouldRenderCorrectly()
+    {
+        // Setup custom helper
+        _customHelperServiceMock
+            .Setup(x => x.RegisterHelpers(It.IsAny<IHandlebars>()))
+            .Callback<IHandlebars>(handlebars =>
+            {
+                handlebars.RegisterTemplate("repeat", (writer, context, parameters) =>
+                {
+                    var args = parameters as object[] ?? Array.Empty<object>();
+                    var text = args.FirstOrDefault()?.ToString() ?? string.Empty;
+                    var count = int.Parse(args.Skip(1).FirstOrDefault()?.ToString() ?? "1");
+                    writer.Write(string.Concat(Enumerable.Repeat(text, count)));
+                });
+            });
+
+        var template = "<html><body><p>{{repeat 'Hello ' 3}}</p></body></html>";
+        var model = new { };
+
+        return VerifyPdfGeneration(
+            template,
+            model,
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.A4 },
+            "Hello Hello Hello"
+        );
+    }
+
+    [Fact]
+    public Task GeneratePdf_WithDisabledCustomHelper_ShouldRenderWithoutHelper()
+    {
+        var template = "<html><body><p>{{repeat 'Hello ' 3}}</p></body></html>";
+        var model = new { };
+
+        return VerifyPdfGeneration(
+            template,
+            model,
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.A4 },
+            "{{repeat 'Hello ' 3}}"
+        );
+    }
+
+    [Fact]
+    public Task GeneratePdf_WithCustomHelperError_ShouldHandleError()
+    {
+        // Setup custom helper that throws an error
+        _customHelperServiceMock
+            .Setup(x => x.RegisterHelpers(It.IsAny<IHandlebars>()))
+            .Callback<IHandlebars>(handlebars =>
+            {
+                handlebars.RegisterTemplate("errorHelper", (writer, context, parameters) =>
+                {
+                    throw new Exception("Test error");
+                });
+            });
+
+        var template = "<html><body><p>{{errorHelper}}</p></body></html>";
+        var model = new { };
+
+        return VerifyPdfGeneration(
+            template,
+            model,
+            new PdfConfiguration { Sanitize = true, PageSize = PageSize.A4 },
+            "Error in helper errorHelper: Test error"
         );
     }
 } 

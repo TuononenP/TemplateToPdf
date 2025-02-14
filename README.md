@@ -62,6 +62,172 @@ dotnet run --project TemplateToPdf/TemplateToPdf.csproj
    - HTTP: http://localhost:6050
    - HTTPS: https://localhost:6051
 
+## Features
+
+- Template Management
+  - Create, edit, and delete HTML templates
+  - Preview templates with sample data
+  - Generate PDFs from templates
+  - Built-in and custom Handlebars helpers
+  - Template versioning with creation and update timestamps
+- Asset Management
+  - Support for multiple asset types:
+    - Images (stored as binary data)
+    - CSS stylesheets
+    - Fonts (WOFF2 format)
+    - Partial templates
+  - Automatic reference name generation
+  - Content type validation
+  - Easy integration with templates
+- PDF Generation
+  - Multiple page sizes (A0-A6, Letter, Legal, Tabloid)
+  - Custom margins and styling
+  - HTML sanitization for security
+  - Support for custom fonts
+  - Caching for improved performance
+- User Interface
+  - Modern React-based interface
+  - Light and dark themes
+  - Multi-language support (English, Finnish, Swedish)
+  - Template preview and testing
+  - Asset library management
+  - Responsive design
+- Security
+  - HTML content sanitization
+  - Safe evaluation of custom helpers
+  - HTTPS support
+  - Input validation
+  - Error handling and logging
+
+## Built-in Handlebars Helpers
+
+### String Helpers
+```handlebars
+{{uppercase "text"}}
+{{lowercase "TEXT"}}
+{{substring "text" 0 2}}
+```
+
+### Number Helpers
+```handlebars
+{{formatNumber 1234.5678}}  <!-- 1,234.57 -->
+{{formatCurrency 42.99 "USD"}}  <!-- $42.99 -->
+```
+
+### Math Helpers
+```handlebars
+{{sum 1 2 3 4}}  <!-- 10 -->
+{{multiply 5 3}}  <!-- 15 -->
+{{divide 10 2}}  <!-- 5 -->
+{{round 3.14159 2}}  <!-- 3.14 -->
+```
+
+### Array Helpers
+```handlebars
+{{length items}}
+{{join items ", "}}
+```
+
+### Date Helpers
+```handlebars
+{{formatDate date "MM/dd/yyyy"}}
+{{now "yyyy-MM-dd"}}
+{{addDays date 7 "MM/dd/yyyy"}}
+```
+
+### Conditional Helpers
+```handlebars
+{{#if (eq value1 value2)}}Equal{{/if}}
+{{#if (gt number1 number2)}}Greater{{/if}}
+{{#if (lt number1 number2)}}Less{{/if}}
+```
+
+### Asset Helpers
+```handlebars
+{{css "main-styles"}}  <!-- Include CSS -->
+{{image "company-logo"}}  <!-- Include image -->
+{{font "open-sans"}}  <!-- Include font -->
+{{partial "header"}}  <!-- Include partial template -->
+```
+
+## Asset Management
+
+Assets can be managed through the API and are automatically available in templates. Each asset type has specific handling:
+
+### Images
+- Stored as binary data
+- Automatically converted to base64 for display
+- Supported formats: JPEG, PNG, GIF, SVG
+```bash
+curl -k -X POST "https://localhost:6051/api/assets" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Company Logo",
+    "type": "Image",
+    "mimeType": "image/png",
+    "binaryContent": "'$(base64 -i logo.png)'"
+  }'
+```
+
+### CSS Stylesheets
+- Stored as text
+- Automatically wrapped in style tags
+```bash
+curl -k -X POST "https://localhost:6051/api/assets" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Main Styles",
+    "type": "Css",
+    "content": "body { font-family: Arial; } .header { background: #f5f5f5; }"
+  }'
+```
+
+### Fonts
+- Stored as WOFF2 binary data
+- Automatically generates @font-face declaration
+```bash
+curl -k -X POST "https://localhost:6051/api/assets" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Open Sans",
+    "type": "Font",
+    "mimeType": "font/woff2",
+    "binaryContent": "'$(base64 -i OpenSans.woff2)'"
+  }'
+```
+
+### Partial Templates
+- Reusable template fragments
+- Can access parent template context
+```bash
+curl -k -X POST "https://localhost:6051/api/assets" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Invoice Header",
+    "type": "PartialTemplate",
+    "content": "<div class=\"header\"><h1>{{company.name}}</h1><p>Invoice #{{invoiceNumber}}</p></div>"
+  }'
+```
+
+## Themes and Localization
+
+### Themes
+The application supports light and dark themes, which can be changed in the settings:
+- Light theme: Default theme with white background
+- Dark theme: Dark mode with reduced eye strain
+
+### Languages
+Supported languages:
+- English (default)
+- Finnish (Suomi)
+- Swedish (Svenska)
+
+Language can be changed in the settings and affects:
+- UI elements
+- Error messages
+- Date formats
+- Number formats
+
 ## API Usage
 
 The API provides a single endpoint for generating PDFs from Handlebars templates. Here are example requests using curl:
@@ -140,3 +306,118 @@ Cache-Control: public,max-age=60
   - `template`: HTML template with Handlebars expressions
   - `model`: Data model for the template
   - `filename`: Optional filename for the generated PDF (defaults to "ExamplePDF") 
+
+## Custom Handlebars Helpers
+
+You can create custom Handlebars helpers that are immediately available for use in your templates. These helpers are stored in the database and can be managed through the API.
+
+### Adding a Custom Helper
+
+```bash
+curl -k -X POST "https://localhost:6051/api/customhelpers" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "repeat",
+    "description": "Repeats a string n times",
+    "functionBody": "if (args.Length < 2) return string.Empty; var text = args[0]; if (!int.TryParse(args[1], out var count)) return text; return string.Concat(Enumerable.Repeat(text, count));",
+    "isEnabled": true
+  }'
+```
+
+The helper can be used immediately in your templates:
+```handlebars
+{{repeat "Hello " 3}}  <!-- Outputs: Hello Hello Hello -->
+```
+
+### More Helper Examples
+
+1. Pad a number with zeros:
+```bash
+curl -k -X POST "https://localhost:6051/api/customhelpers" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "padNumber",
+    "description": "Pads a number with leading zeros",
+    "functionBody": "if (args.Length < 2) return args[0] ?? string.Empty; var number = args[0]; var length = int.Parse(args[1]); return number?.PadLeft(length, '0') ?? string.Empty;",
+    "isEnabled": true
+  }'
+```
+
+Usage:
+```handlebars
+{{padNumber "42" "5"}}  <!-- Outputs: 00042 -->
+```
+
+2. Truncate text with ellipsis:
+```bash
+curl -k -X POST "https://localhost:6051/api/customhelpers" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "truncate",
+    "description": "Truncates text and adds ellipsis",
+    "functionBody": "if (args.Length < 2) return args[0] ?? string.Empty; var text = args[0] ?? string.Empty; var length = int.Parse(args[1]); return text.Length <= length ? text : text.Substring(0, length) + \"...\";",
+    "isEnabled": true
+  }'
+```
+
+Usage:
+```handlebars
+{{truncate "This is a long text" "10"}}  <!-- Outputs: This is a... -->
+```
+
+3. Format phone number:
+```bash
+curl -k -X POST "https://localhost:6051/api/customhelpers" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "phoneFormat",
+    "description": "Formats a phone number (US format)",
+    "functionBody": "if (string.IsNullOrEmpty(args[0])) return string.Empty; var cleaned = new string(args[0].Where(c => char.IsDigit(c)).ToArray()); if (cleaned.Length == 10) return $\"({cleaned.Substring(0, 3)}) {cleaned.Substring(3, 3)}-{cleaned.Substring(6)}\"; return args[0];",
+    "isEnabled": true
+  }'
+```
+
+Usage:
+```handlebars
+{{phoneFormat "1234567890"}}  <!-- Outputs: (123) 456-7890 -->
+```
+
+### Important Notes
+
+- Custom helpers are written in C# and have access to basic .NET functionality
+- Helpers are validated before being saved to ensure they compile correctly
+- New helpers are available immediately without needing to restart the application
+- Each helper should handle null/empty inputs gracefully
+- The `args` array contains the arguments passed to the helper as strings
+- Helper functions should be kept simple and focused on a single task
+- Use `isEnabled: false` to temporarily disable a helper without deleting it
+
+### Managing Helpers
+
+List all helpers:
+```bash
+curl -k -X GET "https://localhost:6051/api/customhelpers"
+```
+
+Get a specific helper:
+```bash
+curl -k -X GET "https://localhost:6051/api/customhelpers/1"
+```
+
+Update a helper:
+```bash
+curl -k -X PUT "https://localhost:6051/api/customhelpers/1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 1,
+    "name": "repeat",
+    "description": "Repeats a string n times",
+    "functionBody": "if (args.Length < 2) return string.Empty; var text = args[0]; if (!int.TryParse(args[1], out var count)) return text; return string.Concat(Enumerable.Repeat(text, count));",
+    "isEnabled": true
+  }'
+```
+
+Delete a helper:
+```bash
+curl -k -X DELETE "https://localhost:6051/api/customhelpers/1"
+``` 
