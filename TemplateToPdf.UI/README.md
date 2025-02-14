@@ -39,8 +39,8 @@ src/
 │   ├── settings/      # Settings page components
 │   └── Dashboard.tsx  # Dashboard component
 ├── i18n/              # Internationalization files
-│   ├── fi.ts         # Finnish translations
-│   └── sv.ts         # Swedish translations
+│   ├── fi.ts         # Finnish base translations
+│   └── sv.ts         # Swedish base translations
 ├── layout/           # Layout components
 ├── App.tsx          # Main application component
 ├── dataProvider.ts  # React Admin data provider
@@ -74,22 +74,51 @@ src/
 
 ### Code Style
 
-The project uses Prettier for code formatting. Configuration is in `.prettierrc`:
+The project uses Prettier for code formatting. Configuration is in `.prettierrc`.
 
 ### Adding New Features
 
 1. Create new components in the appropriate directory under `src/components/`
-2. Add translations for new features in:
-   - `src/i18n/fi.ts` (Finnish)
-   - `src/i18n/sv.ts` (Swedish)
+2. Add translations for new features in `src/i18n/i18nProvider.ts`
 3. Update the main `App.tsx` if needed
 4. Add any new routes to the React Admin configuration
 
 ### Internationalization
 
+All translations should be added to `src/i18n/i18nProvider.ts`. The file contains translations for all supported languages (en, fi, sv) in a structured format.
+
 To add new translations:
 
-1. Add translation keys and values in the language files
+1. Add translation keys and values in the `messages` object in `i18nProvider.ts`:
+```typescript
+const messages = {
+    en: {
+        ...en,
+        your: {
+            new: {
+                key: 'English translation'
+            }
+        }
+    },
+    fi: {
+        ...fi,
+        your: {
+            new: {
+                key: 'Finnish translation'
+            }
+        }
+    },
+    sv: {
+        ...sv,
+        your: {
+            new: {
+                key: 'Swedish translation'
+            }
+        }
+    }
+};
+```
+
 2. Use the `useTranslate` hook in components:
 ```typescript
 import { useTranslate } from 'react-admin';

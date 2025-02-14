@@ -68,7 +68,14 @@ export const TemplateList = () => (
         filters={TemplateFilters}
         sort={{ field: 'updatedAt', order: 'DESC' }}
     >
-        <Datagrid>
+        <Datagrid
+            sx={{
+                '& .RaDatagrid-headerCell': {
+                    backgroundColor: theme => theme.palette.mode === 'light' ? '#f5f5f5' : '#333333',
+                    fontWeight: 'bold'
+                },
+            }}
+        >
             <TextField source="id" />
             <TextField source="name" label="Name" />
             <DateField source="createdAt" showTime label="Created" />

@@ -19,6 +19,7 @@ import { Box } from '@mui/material';
 import AceEditor from 'react-ace';
 import Handlebars from 'handlebars';
 import { useState, useEffect, useCallback } from 'react';
+import { registerHandlebarsHelpers } from '../../utils/handlebarsHelpers';
 
 // Import ace editor themes and modes
 import 'ace-builds/webpack-resolver';
@@ -28,20 +29,8 @@ import 'ace-builds/src-min-noconflict/mode-json';
 import 'ace-builds/src-min-noconflict/theme-twilight';
 import 'ace-builds/src-min-noconflict/theme-xcode';
 
-// Register formatDate helper
-Handlebars.registerHelper('formatDate', function(date: Date, format: string) {
-    if (!date) return '';
-    try {
-        const d = new Date(date);
-        // Basic format implementation - extend as needed
-        return format
-            .replace('MM', String(d.getMonth() + 1).padStart(2, '0'))
-            .replace('dd', String(d.getDate()).padStart(2, '0'))
-            .replace('yyyy', String(d.getFullYear()));
-    } catch (error) {
-        return '';
-    }
-});
+// Register all Handlebars helpers
+registerHandlebarsHelpers();
 
 const EditActions = () => (
     <TopToolbar>

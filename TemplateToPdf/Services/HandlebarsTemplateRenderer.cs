@@ -28,6 +28,9 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
         var handlebars = Handlebars.Create();
         handlebars.Configuration.UseJson();
 
+        // Register all custom helpers
+        HandlebarsHelpers.RegisterHelpers(handlebars);
+
         if (sanitize)
         {
             // Register a global helper that will be automatically applied to all variables
