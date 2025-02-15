@@ -1,6 +1,42 @@
 import Handlebars from 'handlebars';
 import { AssetType } from '../types';
 
+// Cache for assets
+let imageAssets: any[] = [];
+let cssAssets: any[] = [];
+let fontAssets: any[] = [];
+let assetsLoaded = false;
+
+const fetchAssets = async () => {
+    try {
+        // Fetch images
+        const imageResponse = await fetch(`${process.env.REACT_APP_API_URL}/assets/type/${AssetType.Image}`);
+        if (imageResponse.ok) {
+            imageAssets = await imageResponse.json();
+            console.debug(`Loaded ${imageAssets.length} images`);
+        }
+
+        // Fetch CSS
+        const cssResponse = await fetch(`${process.env.REACT_APP_API_URL}/assets/type/${AssetType.Css}`);
+        if (cssResponse.ok) {
+            cssAssets = await cssResponse.json();
+            console.debug(`Loaded ${cssAssets.length} CSS assets`);
+        }
+
+        // Fetch fonts
+        const fontResponse = await fetch(`${process.env.REACT_APP_API_URL}/assets/type/${AssetType.Font}`);
+        if (fontResponse.ok) {
+            fontAssets = await fontResponse.json();
+            console.debug(`Loaded ${fontAssets.length} fonts`);
+        }
+
+        assetsLoaded = true;
+    } catch (error) {
+        console.error('Error fetching assets:', error);
+        throw error;
+    }
+};
+
 export const registerPartialTemplates = async () => {
     try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/assets/type/${AssetType.PartialTemplate}`);
@@ -36,10 +72,60 @@ export const registerPartialTemplates = async () => {
     }
 };
 
-export const registerHandlebarsHelpers = () => {
+export const registerHandlebarsHelpers = async () => {
+    // Ensure assets are loaded
+    if (!assetsLoaded) {
+        await fetchAssets();
+    }
+
     // Register partial templates
-    registerPartialTemplates().catch(error => {
-        console.error('Failed to register partial templates:', error);
+    await registerPartialTemplates();
+
+    // Asset helpers
+    Handlebars.registerHelper('image', function(referenceName) {
+        if (!referenceName) {
+            console.warn('No reference name provided for image helper');
+            return '';
+        }
+        const image = imageAssets.find(img => img.referenceName === referenceName);
+        if (!image || !image.binaryContent) {
+            console.warn(`Image not found: ${referenceName}`);
+            return '';
+        }
+        return new Handlebars.SafeString(`<img src="data:${image.mimeType};base64,${image.binaryContent}" alt="${image.name}" />`);
+    });
+
+    Handlebars.registerHelper('css', function(referenceName) {
+        if (!referenceName) {
+            console.warn('No reference name provided for css helper');
+            return '';
+        }
+        const css = cssAssets.find(c => c.referenceName === referenceName);
+        if (!css || !css.content) {
+            console.warn(`CSS not found: ${referenceName}`);
+            return '';
+        }
+        return new Handlebars.SafeString(`<style>${css.content}</style>`);
+    });
+
+    Handlebars.registerHelper('font', function(referenceName) {
+        if (!referenceName) {
+            console.warn('No reference name provided for font helper');
+            return '';
+        }
+        const font = fontAssets.find(f => f.referenceName === referenceName);
+        if (!font || !font.binaryContent) {
+            console.warn(`Font not found: ${referenceName}`);
+            return '';
+        }
+        return new Handlebars.SafeString(`
+            <style>
+                @font-face {
+                    font-family: '${font.name}';
+                    src: url(data:font/woff2;base64,${font.binaryContent}) format('woff2');
+                }
+            </style>
+        `);
     });
 
     // String helpers

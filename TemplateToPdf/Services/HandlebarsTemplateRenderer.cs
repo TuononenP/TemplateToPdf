@@ -7,6 +7,10 @@ using IHtmlSanitizer = TemplateToPdf.Interfaces.IHtmlSanitizer;
 using TemplateToPdf.Data.Repositories;
 using TemplateToPdf.Models;
 using HandlebarsDotNet.Runtime;
+using System;
+using System.Linq;
+using HandlebarsDotNet.StringUtils;
+using System.IO;
 
 namespace TemplateToPdf.Services;
 
@@ -111,55 +115,69 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
     private void RegisterAssetHelpers(IHandlebars handlebars)
     {
         // Helper for including CSS assets
-        handlebars.RegisterHelper("css", (context, arguments) =>
+        handlebars.RegisterHelper("css", (writer, context, arguments) =>
         {
             if (arguments.Length == 0 || arguments[0] == null)
-                return "";
+                return;
 
             var referenceName = arguments[0]?.ToString() ?? string.Empty;
             var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
             
             if (asset == null || asset.Type != AssetType.Css)
-                return "";
+                return;
 
-            return $"<style>{asset.Content}</style>";
+            writer.WriteSafeString($"<style>{asset.Content}</style>");
         });
 
         // Helper for including images
-        handlebars.RegisterHelper("image", (context, arguments) =>
+        handlebars.RegisterHelper("image", (writer, context, arguments) =>
         {
             if (arguments.Length == 0 || arguments[0] == null)
-                return "";
+            {
+                _logger.LogWarning("No reference name provided for image helper");
+                return;
+            }
 
             var referenceName = arguments[0]?.ToString() ?? string.Empty;
             var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
             
             if (asset == null || asset.Type != AssetType.Image)
-                return "";
+            {
+                _logger.LogWarning("Image not found or invalid type: {ReferenceName}", referenceName);
+                return;
+            }
 
-            return $"<img src=\"{asset.GetContentForDisplay()}\" alt=\"{asset.Name}\" />";
+            if (asset.BinaryContent == null)
+            {
+                _logger.LogWarning("Image has no binary content: {ReferenceName}", referenceName);
+                return;
+            }
+
+            var base64Content = Convert.ToBase64String(asset.BinaryContent);
+            writer.WriteSafeString($"<img src=\"data:{asset.MimeType};base64,{base64Content}\" alt=\"{asset.Name}\" />");
         });
 
         // Helper for including fonts
-        handlebars.RegisterHelper("font", (context, arguments) =>
+        handlebars.RegisterHelper("font", (writer, context, arguments) =>
         {
             if (arguments.Length == 0 || arguments[0] == null)
-                return "";
+                return;
 
             var referenceName = arguments[0]?.ToString() ?? string.Empty;
             var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
             
-            if (asset == null || asset.Type != AssetType.Font)
-                return "";
+            if (asset == null || asset.Type != AssetType.Font || asset.BinaryContent == null)
+                return;
 
             var fontName = asset.Name.Replace(" ", "_");
-            return $@"
+            var base64Content = Convert.ToBase64String(asset.BinaryContent);
+            writer.WriteSafeString($@"
                 <style>
                     @font-face {{
                         font-family: '{fontName}';
-                        src: url('{asset.Content}') format('woff2');
+                        src: url('data:font/woff2;base64,{base64Content}') format('woff2');
                     }}
-                </style>";
+                </style>");
         });
 
         // Register partial templates

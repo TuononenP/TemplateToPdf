@@ -105,7 +105,9 @@ public partial class PdfGenerationService(
     private string SanitizeAndValidateHtml(string html, string source, bool validateTags = true)
     {
         _logger.LogDebug("Sanitizing {Source} HTML. Length: {Length}", source, html.Length);
+        _logger.LogDebug("Sanitizing HTML: {Html}", html);
         var sanitized = _htmlSanitizer.Sanitize(html);
+        _logger.LogDebug("Sanitized HTML: {Sanitized}", sanitized);
         ArgumentNullException.ThrowIfNull(sanitized);
         
         _logger.LogDebug("Sanitized {Source} length: {Length}", source, sanitized.Length);

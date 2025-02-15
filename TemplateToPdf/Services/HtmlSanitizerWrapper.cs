@@ -21,6 +21,10 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         sanitizer.AllowedTags.Clear();
         sanitizer.AllowedAttributes.Clear();
         sanitizer.AllowedCssProperties.Clear();
+        sanitizer.AllowedSchemes.Clear();
+        
+        // Allow data URLs
+        sanitizer.AllowedSchemes.Add("data");
         
         // Document structure
         sanitizer.AllowedTags.Add("html");
@@ -33,6 +37,8 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         sanitizer.AllowedTags.Add("article");
         sanitizer.AllowedTags.Add("section");
         sanitizer.AllowedTags.Add("aside");
+        sanitizer.AllowedTags.Add("img");
+        sanitizer.AllowedTags.Add("font");
 
         // Headings and text
         sanitizer.AllowedTags.Add("h1");
@@ -107,6 +113,17 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         sanitizer.AllowedAttributes.Add("cellpadding");
         sanitizer.AllowedAttributes.Add("cellspacing");
 
+        // Image attributes
+        sanitizer.AllowedAttributes.Add("src");
+        sanitizer.AllowedAttributes.Add("alt");
+        sanitizer.AllowedAttributes.Add("width");
+        sanitizer.AllowedAttributes.Add("height");
+
+        // Font attributes
+        sanitizer.AllowedAttributes.Add("face");
+        sanitizer.AllowedAttributes.Add("size");
+        sanitizer.AllowedAttributes.Add("color");
+
         // Allow all CSS properties
         sanitizer.AllowedCssProperties.Add("*");
 
@@ -126,7 +143,30 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
             return html;
         }
 
-        // Sanitize HTML without preserving Handlebars expressions
+        //// Extract data URLs before sanitization
+        //var dataUrls = new Dictionary<string, string>();
+        //var counter = 0;
+        //var pattern = "data:[^\"']+;base64,[^\"']+";
+        //var placeholderFormat = "DATA_URL_PLACEHOLDER_{0}";
+
+        //html = Regex.Replace(html, pattern, match =>
+        //{
+        //    var placeholder = string.Format(placeholderFormat, counter);
+        //    dataUrls[placeholder] = match.Value;
+        //    counter++;
+        //    return placeholder;
+        //});
+
+        //// Sanitize HTML
+        //var sanitized = _sanitizer.Sanitize(html);
+
+        //// Restore data URLs
+        //foreach (var kvp in dataUrls)
+        //{
+        //    sanitized = sanitized.Replace(kvp.Key, kvp.Value);
+        //}
+        //return sanitized;
+
         return _sanitizer.Sanitize(html);
     }
 } 

@@ -26,14 +26,10 @@ const defaultTemplate = `<html>
     <head>
         <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
-            .customer-info { margin: 20px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { padding: 8px; text-align: left; border: 1px solid #ddd; }
             th { background-color: #f5f5f5; font-weight: bold; }
-            .total { font-weight: bold; background-color: #f9f9f9; }
             h1, h2 { margin-bottom: 10px; }
-            .price { text-align: right; }
-            .quantity { text-align: center; }
         </style>
     </head>
     <body>

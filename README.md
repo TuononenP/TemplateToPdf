@@ -222,7 +222,7 @@ Usage in main template:
 ```handlebars
 <html>
 <body>
-  {{> invoice-header}}  <!-- Will be replaced with the partial content -->
+  {{> "invoice-header"}}  <!-- Will be replaced with the partial content -->
   <div class="content">
     <!-- Rest of the invoice content -->
   </div>

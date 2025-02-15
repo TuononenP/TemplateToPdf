@@ -54,7 +54,7 @@ You can reference assets in your templates using their reference names. The refe
 
 4. Partial Templates:
 ```handlebars
-{{partial "invoice-header"}}
+{{> "invoice-header"}}
 ```
 
 ### Reference Name Examples

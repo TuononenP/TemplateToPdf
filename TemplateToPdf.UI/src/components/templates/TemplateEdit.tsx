@@ -19,7 +19,7 @@ import { Box } from '@mui/material';
 import AceEditor from 'react-ace';
 import Handlebars from 'handlebars';
 import { useState, useEffect, useCallback } from 'react';
-import { registerHandlebarsHelpers, registerPartialTemplates } from '../../utils/handlebarsHelpers';
+import { registerHandlebarsHelpers } from '../../utils/handlebarsHelpers';
 
 // Import ace editor themes and modes
 import 'ace-builds/webpack-resolver';
@@ -28,9 +28,6 @@ import 'ace-builds/src-min-noconflict/mode-handlebars';
 import 'ace-builds/src-min-noconflict/mode-json';
 import 'ace-builds/src-min-noconflict/theme-twilight';
 import 'ace-builds/src-min-noconflict/theme-xcode';
-
-// Register all Handlebars helpers
-registerHandlebarsHelpers();
 
 const EditActions = () => (
     <TopToolbar>
@@ -198,6 +195,7 @@ const ContentInput = ({ source, ...rest }: any) => {
     const [previewError, setPreviewError] = useState<string | null>(null);
     const [model, setModel] = useState(() => JSON.stringify({}, null, 2));
     const [modelError, setModelError] = useState<string | null>(null);
+    const [helpersRegistered, setHelpersRegistered] = useState(false);
 
     // Update model when template changes
     useEffect(() => {
@@ -213,12 +211,27 @@ const ContentInput = ({ source, ...rest }: any) => {
         }
     }, [value]);
 
-    // Ensure partials are registered before preview
+    // Register helpers and partials
     useEffect(() => {
-        registerPartialTemplates();
+        const initializeHelpers = async () => {
+            try {
+                await registerHandlebarsHelpers();
+                setHelpersRegistered(true);
+            } catch (error) {
+                console.error('Error registering helpers:', error);
+                setPreviewError('Error loading template helpers');
+            }
+        };
+        
+        initializeHelpers();
     }, []);
 
     const generatePreview = useCallback(() => {
+        if (!helpersRegistered) {
+            console.debug('Helpers not yet registered, skipping preview generation');
+            return;
+        }
+
         try {
             const template = Handlebars.compile(value || '');
             const parsedModel = JSON.parse(model);
@@ -234,7 +247,7 @@ const ContentInput = ({ source, ...rest }: any) => {
             }
             setPreview('');
         }
-    }, [value, model]);
+    }, [value, model, helpersRegistered]);
 
     useEffect(() => {
         generatePreview();
