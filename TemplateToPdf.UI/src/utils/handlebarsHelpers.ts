@@ -1,6 +1,47 @@
 import Handlebars from 'handlebars';
+import { AssetType } from '../types';
+
+export const registerPartialTemplates = async () => {
+    try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/assets/type/${AssetType.PartialTemplate}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch partial templates');
+        }
+        const partials = await response.json();
+        
+        // Clear existing partials
+        for (const name in Handlebars.partials) {
+            if (Object.prototype.hasOwnProperty.call(Handlebars.partials, name)) {
+                Handlebars.unregisterPartial(name);
+            }
+        }
+        
+        partials.forEach((partial: any) => {
+            if (partial.content) {
+                try {
+                    // Pre-compile the partial template to catch any syntax errors early
+                    const compiledPartial = Handlebars.compile(partial.content);
+                    Handlebars.registerPartial(partial.referenceName, compiledPartial);
+                    console.debug(`Registered partial template: ${partial.referenceName}`);
+                } catch (error) {
+                    console.error(`Failed to compile partial template ${partial.referenceName}:`, error);
+                }
+            } else {
+                console.warn(`Partial template ${partial.referenceName} has no content`);
+            }
+        });
+    } catch (error) {
+        console.error('Error registering partial templates:', error);
+        throw error;
+    }
+};
 
 export const registerHandlebarsHelpers = () => {
+    // Register partial templates
+    registerPartialTemplates().catch(error => {
+        console.error('Failed to register partial templates:', error);
+    });
+
     // String helpers
     Handlebars.registerHelper('uppercase', function(str) {
         return (str || '').toString().toUpperCase();

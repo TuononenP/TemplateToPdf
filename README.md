@@ -199,6 +199,15 @@ curl -k -X POST "https://localhost:6051/api/assets" \
 ### Partial Templates
 - Reusable template fragments
 - Can access parent template context
+- Uses standard Handlebars partial syntax
+- Supports nested partials (partials can include other partials)
+```handlebars
+{{> partial-name}}  <!-- Standard Handlebars partial syntax -->
+{{> header}}       <!-- Example: Include header partial -->
+{{> footer}}       <!-- Example: Include footer partial -->
+```
+
+Example partial template creation:
 ```bash
 curl -k -X POST "https://localhost:6051/api/assets" \
   -H "Content-Type: application/json" \
@@ -208,6 +217,24 @@ curl -k -X POST "https://localhost:6051/api/assets" \
     "content": "<div class=\"header\"><h1>{{company.name}}</h1><p>Invoice #{{invoiceNumber}}</p></div>"
   }'
 ```
+
+Usage in main template:
+```handlebars
+<html>
+<body>
+  {{> invoice-header}}  <!-- Will be replaced with the partial content -->
+  <div class="content">
+    <!-- Rest of the invoice content -->
+  </div>
+</body>
+</html>
+```
+
+Note: Partial templates:
+- Are automatically registered when the template renderer is created
+- Share the same context as the parent template
+- Can be used multiple times in the same template
+- Support dynamic content through variables
 
 ## Themes and Localization
 

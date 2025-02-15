@@ -17,16 +17,25 @@ export const dataProvider = {
             order: order,
         };
 
-        // Add name filter if present
+        // Add filters if present
         if (params.filter.name) {
             query.name = params.filter.name;
         }
+        if (params.filter.referenceName) {
+            query.referenceName = params.filter.referenceName;
+        }
+        if (params.filter.type !== undefined) {
+            query.type = params.filter.type;
+        }
 
         const url = `${apiUrl}/${resource}?${qs.stringify(query)}`;
-        const { json } = await httpClient(url);
+        const { json, headers } = await httpClient(url);
+        const total = headers.get('x-total-count')
+            ? parseInt(headers.get('x-total-count') || '0', 10)
+            : json.length;
         return {
             data: json,
-            total: json.length,
+            total: total,
         };
     },
 

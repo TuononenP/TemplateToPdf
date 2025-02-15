@@ -34,8 +34,7 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
 
     private IHandlebars CreateHandlebars(bool sanitize = true)
     {
-        var handlebars = HandlebarsDotNet.Handlebars.Create();
-
+        var handlebars = Handlebars.Create();
         // Register built-in helpers
         HandlebarsHelpers.RegisterHelpers(handlebars);
 
@@ -163,22 +162,27 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
                 </style>";
         });
 
-        // Helper for including partial templates
-        handlebars.RegisterHelper("partial", (context, arguments) =>
+        // Register partial templates
+        var partialTemplates = _assetRepository.GetAssetsByTypeAsync(AssetType.PartialTemplate).Result;
+        foreach (var partial in partialTemplates)
         {
-            if (arguments.Length == 0 || arguments[0] == null)
-                return "";
-
-            var referenceName = arguments[0]?.ToString() ?? string.Empty;
-            var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
-            
-            if (asset == null || asset.Type != AssetType.PartialTemplate)
-                return "";
-
-            // Compile and render the partial template with the current context
-            var template = handlebars.Compile(asset.Content);
-            return template(context);
-        });
+            try
+            {
+                if (!string.IsNullOrEmpty(partial.Content))
+                {
+                    _logger.LogDebug("Registering partial template: {PartialName}", partial.ReferenceName);
+                    handlebars.RegisterTemplate(partial.ReferenceName, partial.Content);
+                }
+                else
+                {
+                    _logger.LogWarning("Partial template {PartialName} has no content", partial.ReferenceName);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to register partial template {PartialName}", partial.ReferenceName);
+            }
+        }
     }
 
     public string RenderTemplate<T>(string template, T model, bool sanitize = true)

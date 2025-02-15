@@ -19,7 +19,7 @@ import { Box } from '@mui/material';
 import AceEditor from 'react-ace';
 import Handlebars from 'handlebars';
 import { useState, useEffect, useCallback } from 'react';
-import { registerHandlebarsHelpers } from '../../utils/handlebarsHelpers';
+import { registerHandlebarsHelpers, registerPartialTemplates } from '../../utils/handlebarsHelpers';
 
 // Import ace editor themes and modes
 import 'ace-builds/webpack-resolver';
@@ -212,6 +212,11 @@ const ContentInput = ({ source, ...rest }: any) => {
             }
         }
     }, [value]);
+
+    // Ensure partials are registered before preview
+    useEffect(() => {
+        registerPartialTemplates();
+    }, []);
 
     const generatePreview = useCallback(() => {
         try {
