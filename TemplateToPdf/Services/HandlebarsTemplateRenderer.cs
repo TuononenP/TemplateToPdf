@@ -25,7 +25,7 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
     private readonly ICustomHelperService _customHelperService;
 
     public HandlebarsTemplateRenderer(
-        ILogger<HandlebarsTemplateRenderer> logger, 
+        ILogger<HandlebarsTemplateRenderer> logger,
         IHtmlSanitizer htmlSanitizer,
         IAssetRepository assetRepository,
         ICustomHelperService customHelperService)
@@ -36,9 +36,16 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
         _customHelperService = customHelperService;
     }
 
-    private IHandlebars CreateHandlebars(bool sanitize = true)
+    private IHandlebars CreateHandlebars()
     {
-        var handlebars = Handlebars.Create();
+        var handlebars = Handlebars.Create(new HandlebarsConfiguration
+        {
+            NoEscape = true
+        });
+
+        // Enable JSON support
+        handlebars.Configuration.UseJson();
+
         // Register built-in helpers
         HandlebarsHelpers.RegisterHelpers(handlebars);
 
@@ -48,25 +55,12 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
         // Register custom helpers from database
         _customHelperService.RegisterHelpers(handlebars);
 
-        if (sanitize)
-        {
-            // Register a global helper that will be automatically applied to all variables
-            handlebars.RegisterHelper("*", (context, arguments) =>
-            {
-                if (arguments.Length == 0 || arguments[0] == null)
-                    return string.Empty;
-                    
-                var value = arguments[0].ToString();
-                return value == null ? string.Empty : _htmlSanitizer.Sanitize(value);
-            });
-        }
-
         // Helper for safely rendering HTML content
         handlebars.RegisterHelper("safeHtml", (context, args) =>
         {
             if (args.Length == 0 || args[0] == null)
                 return "";
-                
+
             var input = args[0].ToString();
             return input == null ? string.Empty : _htmlSanitizer.Sanitize(input);
         });
@@ -122,7 +116,7 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
 
             var referenceName = arguments[0]?.ToString() ?? string.Empty;
             var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
-            
+
             if (asset == null || asset.Type != AssetType.Css)
                 return;
 
@@ -140,7 +134,7 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
 
             var referenceName = arguments[0]?.ToString() ?? string.Empty;
             var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
-            
+
             if (asset == null || asset.Type != AssetType.Image)
             {
                 _logger.LogWarning("Image not found or invalid type: {ReferenceName}", referenceName);
@@ -165,7 +159,7 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
 
             var referenceName = arguments[0]?.ToString() ?? string.Empty;
             var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
-            
+
             if (asset == null || asset.Type != AssetType.Font || asset.BinaryContent == null)
                 return;
 
@@ -209,11 +203,19 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
         _logger.LogDebug("Model: {@Model}", model);
 
         // Create a new Handlebars instance for each render to ensure latest helpers
-        var handlebars = CreateHandlebars(sanitize);
+        var handlebars = CreateHandlebars();
         var compiledTemplate = handlebars.Compile(template);
         var result = compiledTemplate(model);
         
-        _logger.LogDebug("Rendered result: {Result}", result);
+        _logger.LogDebug("Rendered result before sanitization: {Result}", result);
+        
+        // Only sanitize the final result if sanitize is true
+        if (sanitize)
+        {
+            result = _htmlSanitizer.Sanitize(result);
+            _logger.LogDebug("Sanitized result: {Result}", result);
+        }
+        
         return result;
     }
-} 
+}
