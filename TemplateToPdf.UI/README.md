@@ -48,8 +48,8 @@ You can reference assets in your templates using their reference names. The refe
 
 3. Fonts:
 ```handlebars
-{{font "open-sans"}}
-<div style="font-family: 'Open_Sans'">Text using custom font</div>
+{{font "custom-font"}}
+<div style="font-family: 'custom-font'">Text using custom font</div>
 ```
 
 4. Partial Templates:

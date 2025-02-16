@@ -12,12 +12,14 @@ import {
     useNotify,
     useRedirect,
 } from 'react-admin';
+import { useFormContext } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import AceEditor from 'react-ace';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Paper } from '@mui/material';
 import { useCallback } from 'react';
 import { AssetType } from 'types';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 // Import ace editor themes and modes
 import 'ace-builds/webpack-resolver';
@@ -93,7 +95,9 @@ const ContentInput = ({ source, ...rest }: any) => {
 
 const BinaryContentInput = ({ source, ...rest }: any) => {
     const translate = useTranslate();
+    const notify = useNotify();
     const record = useRecordContext();
+    const form = useFormContext();
     const {
         field: { value, onChange }
     } = useInput({
@@ -104,6 +108,15 @@ const BinaryContentInput = ({ source, ...rest }: any) => {
     const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            // Check file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                notify('File size exceeds 10MB limit', { type: 'error' });
+                return;
+            }
+
+            // Set the MIME type in the form
+            form.setValue('mimeType', file.type);
+
             const reader = new FileReader();
             reader.onload = () => {
                 const base64 = (reader.result as string).split(',')[1];
@@ -111,7 +124,36 @@ const BinaryContentInput = ({ source, ...rest }: any) => {
             };
             reader.readAsDataURL(file);
         }
-    }, [onChange]);
+    }, [onChange, notify, form]);
+
+    const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const file = event.dataTransfer.files?.[0];
+        if (file) {
+            // Check file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                notify('File size exceeds 10MB limit', { type: 'error' });
+                return;
+            }
+
+            // Set the MIME type in the form
+            form.setValue('mimeType', file.type);
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                const base64 = (reader.result as string).split(',')[1];
+                onChange(base64);
+            };
+            reader.readAsDataURL(file);
+        }
+    }, [onChange, notify, form]);
+
+    const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+    }, []);
 
     if (record?.type !== AssetType.Image && record?.type !== AssetType.Font) {
         return null;
@@ -122,22 +164,50 @@ const BinaryContentInput = ({ source, ...rest }: any) => {
             <Box mb={1} fontWeight="bold" color="rgba(0, 0, 0, 0.6)" fontSize="0.75em">
                 {translate('assets.fields.binaryContent')} *
             </Box>
-            <input
-                type="file"
-                accept={record?.type === AssetType.Image ? 'image/*' : '.woff2'}
-                onChange={handleFileChange}
-            />
+            <Paper
+                variant="outlined"
+                sx={{
+                    p: 2,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                    '&:hover': {
+                        bgcolor: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                    }
+                }}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onClick={() => document.getElementById('file-input')?.click()}
+            >
+                <input
+                    id="file-input"
+                    type="file"
+                    accept={record?.type === AssetType.Image ? 'image/*' : '.woff2,.ttf,.otf'}
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                />
+                <CloudUploadIcon sx={{ fontSize: 48, mb: 1, color: 'primary.main' }} />
+                <Typography variant="body1" gutterBottom>
+                    {translate('ra.input.file.upload_single')}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    {record?.type === AssetType.Image ? 'Supported formats: JPG, PNG, GIF, WebP' : 'Supported formats: WOFF2, TTF, OTF'}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    Maximum size: 10MB
+                </Typography>
+            </Paper>
             {value && (
                 <Box mt={2}>
                     {record?.type === AssetType.Image && (
                         <img
-                            src={`data:${record.mimeType};base64,${value}`}
+                            src={`data:${form.getValues('mimeType')};base64,${value}`}
                             alt="Preview"
-                            style={{ maxWidth: '100%', maxHeight: '200px' }}
+                            style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
                         />
                     )}
                     {record?.type === AssetType.Font && (
-                        <Typography>
+                        <Typography color="success.main">
                             {translate('assets.edit.fontUploaded')}
                         </Typography>
                     )}
@@ -151,10 +221,28 @@ export const AssetEdit = () => {
     const notify = useNotify();
     const redirect = useRedirect();
 
+    const transform = (data: any) => {
+        const transformed = { ...data };
+        
+        // Ensure type is converted to number
+        transformed.type = parseInt(transformed.type);
+        
+        // Clear content or binaryContent based on asset type
+        if (transformed.type === AssetType.Image || transformed.type === AssetType.Font) {
+            transformed.content = null;
+        } else {
+            transformed.binaryContent = null;
+            transformed.mimeType = null;
+        }
+        
+        return transformed;
+    };
+
     return (
         <Edit 
             actions={<EditActions />}
             mutationMode="pessimistic"
+            transform={transform}
             mutationOptions={{
                 onSuccess: () => {
                     notify('assets.notifications.updated', { type: 'success' });

@@ -20,89 +20,13 @@ public partial class PdfGenerationService(
     private const int MaxTemplateSizeBytes = 5 * 1024 * 1024; // 5MB
     private const int MaxRenderedSizeBytes = 10 * 1024 * 1024; // 10MB
 
-    // Allowed HTML tags with their common attributes
-    private static readonly string[] AllowedHtmlTags = 
-    [
-        // Document structure
-        "html", "head", "body", "main", "header", "footer", "nav", "article", "section", "aside",
-
-        // Headings and text
-        "h1", "h2", "h3", "h4", "h5", "h6",
-        "p", "div", "span", "pre", "br", "hr",
-        "b", "strong", "i", "em", "u", "s", "strike",
-        "sub", "sup", "small", "big", "tt", "code", "kbd", "var", "samp",
-        "abbr", "acronym", "cite", "q", "blockquote", "address",
-        "bdi", "mark", "ruby", "rt", "rp", "time", "wbr",
-
-        // Lists
-        "ul", "ol", "li", "dl", "dt", "dd", "dir", "menu", "menuitem",
-
-        // Tables
-        "table", "caption", "thead", "tbody", "tfoot",
-        "tr", "th", "td", "col", "colgroup",
-
-        // Forms and input
-        "form", "input", "button", "select", "optgroup", "option",
-        "textarea", "label", "fieldset", "legend", "datalist", "output",
-        "progress", "meter", "keygen",
-
-        // Media and content
-        "img", "figure", "figcaption", "picture", "source",
-        "map", "area",
-
-        // Interactive elements
-        "details", "summary",
-
-        // Formatting and style
-        "font", "center", "del", "ins",
-
-        // Links
-        "a",
-
-        // Style and metadata
-        "style", "link", "meta"
-    ];
-
-    // Common attributes that should be allowed
-    private static readonly string[] AllowedAttributes =
-    [
-        // Global attributes
-        "id", "class", "style", "title", "lang", "dir",
-        "tabindex", "accesskey", "hidden", "translate",
-
-        // Link and image attributes
-        "href", "src", "alt", "target", "rel", "download",
-        "width", "height", "border", "align", "valign",
-
-        // Table attributes
-        "colspan", "rowspan", "headers", "scope",
-        "cellpadding", "cellspacing",
-
-        // Form attributes
-        "type", "name", "value", "placeholder", "required",
-        "disabled", "readonly", "maxlength", "minlength",
-        "min", "max", "pattern", "accept", "autocomplete",
-        "autofocus", "form", "list", "multiple", "selected",
-        "size", "step",
-
-        // Media attributes
-        "controls", "autoplay", "loop", "muted", "poster",
-        "preload", "crossorigin",
-
-        // Data attributes
-        "data-*"
-    ];
-
     [GeneratedRegex(@"<!\[CDATA\[.*?\]\]>|<!--.*?-->|<\?php.*?\?>|<%.*?%>", RegexOptions.Singleline)]
     private static partial Regex DangerousContentRegex();
 
     [GeneratedRegex(@"data:.*?base64", RegexOptions.IgnoreCase)]
     private static partial Regex Base64DataRegex();
 
-    [GeneratedRegex(@"<(\/?)([\w-]+).*?>", RegexOptions.Singleline)]
-    private static partial Regex HtmlTagRegex();
-
-    private string SanitizeAndValidateHtml(string html, string source, bool validateTags = true)
+    private string SanitizeAndValidateHtml(string html, string source)
     {
         _logger.LogDebug("Sanitizing {Source} HTML. Length: {Length}", source, html.Length);
         var sanitized = _htmlSanitizer.Sanitize(html);
@@ -110,33 +34,7 @@ public partial class PdfGenerationService(
         
         _logger.LogDebug("Sanitized {Source} length: {Length}", source, sanitized.Length);
 
-        if (validateTags)
-        {
-            ValidateRemovedTags(html, sanitized, source);
-        }
-
         return sanitized;
-    }
-
-    private void ValidateRemovedTags(string originalHtml, string sanitizedHtml, string source)
-    {
-        var originalTags = HtmlTagRegex().Matches(originalHtml)
-            .Select(m => m.Groups[2].Value.ToLowerInvariant())
-            .Distinct()
-            .ToHashSet();
-
-        var sanitizedTags = HtmlTagRegex().Matches(sanitizedHtml)
-            .Select(m => m.Groups[2].Value.ToLowerInvariant())
-            .Distinct()
-            .ToHashSet();
-
-        var removedTags = originalTags.Except(sanitizedTags)
-            .Where(tag => AllowedHtmlTags.Contains(tag));
-
-        foreach (var tag in removedTags)
-        {
-            _logger.LogWarning("HTML tag unexpectedly removed from {Source}: {Tag}", source, tag);
-        }
     }
 
     public async Task<byte[]> GeneratePdfFromTemplateAsync<T>(string templateHtml, T model, PdfConfiguration options)

@@ -70,8 +70,17 @@ public class PuppeteerPdfConverter(ILogger<PuppeteerPdfConverter> logger) : IHtm
         _logger.LogDebug("Setting page content");
         await page.SetContentAsync(html);
 
-        // Wait for any fonts to load
-        await page.WaitForTimeoutAsync(1000);
+        // Wait for fonts to load and be applied
+        await page.EvaluateExpressionAsync(@"
+            new Promise((resolve) => {
+                // Wait for all fonts to load
+                document.fonts.ready.then(async () => {
+                    // Additional delay to ensure fonts are applied
+                    await new Promise(r => setTimeout(r, 1000));
+                    resolve();
+                });
+            })
+        ");
 
         // Ensure all content and styles are loaded
         await page.EvaluateExpressionAsync(@"
@@ -80,7 +89,12 @@ public class PuppeteerPdfConverter(ILogger<PuppeteerPdfConverter> logger) : IHtm
                     const styleSheets = document.styleSheets;
                     let loaded = true;
                     for (let i = 0; i < styleSheets.length; i++) {
-                        if (!styleSheets[i].cssRules) loaded = false;
+                        try {
+                            if (!styleSheets[i].cssRules) loaded = false;
+                        } catch (e) {
+                            // Ignore security errors from cross-origin stylesheets
+                            console.warn('Could not access cssRules for stylesheet', e);
+                        }
                     }
                     if (loaded) {
                         clearInterval(interval);

@@ -219,7 +219,7 @@ export const TemplateTestDialog = ({ open, onClose, template }: TemplateTestDial
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
-            notify('PDF generated successfully', { type: 'success' });
+            notify('templates.test.success', { type: 'success' });
             onClose();
         } catch (error) {
             console.error('Error generating PDF:', error);

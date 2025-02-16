@@ -113,16 +113,39 @@ export const registerHandlebarsHelpers = async () => {
             console.warn('No reference name provided for font helper');
             return '';
         }
+
         const font = fontAssets.find(f => f.referenceName === referenceName);
-        if (!font || !font.binaryContent) {
-            console.warn(`Font not found: ${referenceName}`);
+        
+        if (!font) {
+            console.warn(`Font asset not found: ${referenceName}`);
             return '';
         }
+
+        if (!font.binaryContent) {
+            console.warn(`Font has no binary content: ${referenceName}`);
+            return '';
+        }
+
+        if (!font.mimeType) {
+            console.warn(`Font has no MIME type: ${referenceName}`);
+            return '';
+        }
+
+        const format = font.mimeType.toLowerCase() === 'font/woff2' ? 'woff2'
+            : font.mimeType.toLowerCase() === 'font/woff' ? 'woff'
+            : font.mimeType.toLowerCase() === 'font/ttf' || font.mimeType.toLowerCase() === 'application/x-font-ttf' ? 'truetype'
+            : font.mimeType.toLowerCase() === 'font/otf' || font.mimeType.toLowerCase() === 'application/x-font-otf' ? 'opentype'
+            : 'woff2';
+
+        console.debug(`Loading font: ${referenceName}, Format: ${format}, MIME: ${font.mimeType}`);
+
         return new Handlebars.SafeString(`
             <style>
                 @font-face {
-                    font-family: '${font.name}';
-                    src: url(data:font/woff2;base64,${font.binaryContent}) format('woff2');
+                    font-family: '${font.referenceName}' !important;
+                    src: url(data:${font.mimeType};base64,${font.binaryContent}) format('${format}');
+                    font-weight: normal;
+                    font-style: normal;
                 }
             </style>
         `);

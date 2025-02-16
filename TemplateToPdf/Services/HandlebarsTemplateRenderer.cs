@@ -159,23 +159,61 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
         handlebars.RegisterHelper("font", (writer, context, arguments) =>
         {
             if (arguments.Length == 0 || arguments[0] == null)
+            {
+                _logger.LogWarning("No reference name provided for font helper");
                 return;
+            }
 
             var referenceName = arguments[0]?.ToString() ?? string.Empty;
             var asset = _assetRepository.GetAssetByReferenceNameAsync(referenceName).Result;
 
-            if (asset == null || asset.Type != AssetType.Font || asset.BinaryContent == null)
+            if (asset == null)
+            {
+                _logger.LogWarning("Font asset not found: {ReferenceName}", referenceName);
                 return;
+            }
 
-            var fontName = asset.Name.Replace(" ", "_");
+            if (asset.Type != AssetType.Font)
+            {
+                _logger.LogWarning("Asset is not a font: {ReferenceName}, Type: {Type}", referenceName, asset.Type);
+                return;
+            }
+
+            if (asset.BinaryContent == null)
+            {
+                _logger.LogWarning("Font has no binary content: {ReferenceName}", referenceName);
+                return;
+            }
+
+            if (asset.MimeType == null)
+            {
+                _logger.LogWarning("Font has no MIME type: {ReferenceName}", referenceName);
+                return;
+            }
+
+            var format = asset.MimeType.ToLowerInvariant() switch
+            {
+                "font/woff2" => "woff2",
+                "font/woff" => "woff",
+                "font/ttf" => "truetype",
+                "font/otf" => "opentype",
+                "application/x-font-ttf" => "truetype",
+                "application/x-font-otf" => "opentype",
+                _ => "woff2" // default to woff2
+            };
+
             var base64Content = Convert.ToBase64String(asset.BinaryContent);
             writer.WriteSafeString($@"
                 <style>
                     @font-face {{
-                        font-family: '{fontName}';
-                        src: url('data:font/woff2;base64,{base64Content}') format('woff2');
+                        font-family: '{asset.ReferenceName}' !important;
+                        src: url('data:{asset.MimeType};base64,{base64Content}') format('{format}');
+                        font-weight: normal;
+                        font-style: normal;
                     }}
-                </style>");
+                </style>
+            ");
+            _logger.LogInformation("Font loaded successfully: {ReferenceName}, Format: {Format}", referenceName, format);
         });
 
         // Register partial templates

@@ -98,7 +98,6 @@ const BinaryContentInput = ({ source, ...rest }: any) => {
     const notify = useNotify();
     const form = useFormContext();
     const type = parseInt(form.watch('type'));
-    
     const {
         field: { value, onChange }
     } = useInput({
@@ -115,10 +114,8 @@ const BinaryContentInput = ({ source, ...rest }: any) => {
                 return;
             }
 
-            // Set mimeType automatically for images
-            if (type === AssetType.Image) {
-                form.setValue('mimeType', file.type);
-            }
+            // Set the MIME type in the form
+            form.setValue('mimeType', file.type);
 
             const reader = new FileReader();
             reader.onload = () => {
@@ -127,7 +124,7 @@ const BinaryContentInput = ({ source, ...rest }: any) => {
             };
             reader.readAsDataURL(file);
         }
-    }, [onChange, notify, type, form]);
+    }, [onChange, notify, form]);
 
     const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -141,10 +138,8 @@ const BinaryContentInput = ({ source, ...rest }: any) => {
                 return;
             }
 
-            // Set mimeType automatically for images
-            if (type === AssetType.Image) {
-                form.setValue('mimeType', file.type);
-            }
+            // Set the MIME type in the form
+            form.setValue('mimeType', file.type);
 
             const reader = new FileReader();
             reader.onload = () => {
@@ -153,7 +148,7 @@ const BinaryContentInput = ({ source, ...rest }: any) => {
             };
             reader.readAsDataURL(file);
         }
-    }, [onChange, notify, type, form]);
+    }, [onChange, notify, form]);
 
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -253,8 +248,10 @@ const NameInput = () => {
 
 export const AssetCreate = () => {
     const validate = (values: any) => {
-        const errors: any = {};
-        
+        const errors: Record<string, string> = {};
+        if (!values.name) {
+            errors.name = 'Required';
+        }
         if (!values.type) {
             errors.type = 'Required';
         }
@@ -268,16 +265,21 @@ export const AssetCreate = () => {
                 errors.content = 'Required';
             }
         }
-
         return errors;
     };
 
     const transform = (data: any) => {
-        // Convert type to number if it's a string
-        if (typeof data.type === 'string') {
-            data.type = parseInt(data.type, 10);
+        const transformed = { ...data };
+
+        // Clear content or binaryContent based on asset type
+        if (transformed.type === AssetType.Image || transformed.type === AssetType.Font) {
+            transformed.content = null;
+        } else {
+            transformed.binaryContent = null;
+            transformed.mimeType = null;
         }
-        return data;
+        
+        return transformed;
     };
 
     const notify = useNotify();
