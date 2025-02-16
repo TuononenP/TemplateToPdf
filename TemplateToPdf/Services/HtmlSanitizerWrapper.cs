@@ -23,8 +23,10 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         sanitizer.AllowedCssProperties.Clear();
         sanitizer.AllowedSchemes.Clear();
         
-        // Allow data URLs
+        // Allow data URLs and other schemes
         sanitizer.AllowedSchemes.Add("data");
+        sanitizer.AllowedSchemes.Add("http");
+        sanitizer.AllowedSchemes.Add("https");
         
         // Document structure
         sanitizer.AllowedTags.Add("html");
@@ -37,10 +39,11 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         sanitizer.AllowedTags.Add("article");
         sanitizer.AllowedTags.Add("section");
         sanitizer.AllowedTags.Add("aside");
+        sanitizer.AllowedTags.Add("style");
+        sanitizer.AllowedTags.Add("meta");
         sanitizer.AllowedTags.Add("img");
-        sanitizer.AllowedTags.Add("font");
 
-        // Headings and text
+        // Text formatting
         sanitizer.AllowedTags.Add("h1");
         sanitizer.AllowedTags.Add("h2");
         sanitizer.AllowedTags.Add("h3");
@@ -50,49 +53,21 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         sanitizer.AllowedTags.Add("p");
         sanitizer.AllowedTags.Add("div");
         sanitizer.AllowedTags.Add("span");
-        sanitizer.AllowedTags.Add("pre");
         sanitizer.AllowedTags.Add("br");
         sanitizer.AllowedTags.Add("hr");
-        sanitizer.AllowedTags.Add("b");
         sanitizer.AllowedTags.Add("strong");
-        sanitizer.AllowedTags.Add("i");
         sanitizer.AllowedTags.Add("em");
         sanitizer.AllowedTags.Add("u");
         sanitizer.AllowedTags.Add("s");
-        sanitizer.AllowedTags.Add("strike");
-        sanitizer.AllowedTags.Add("sub");
-        sanitizer.AllowedTags.Add("sup");
-        sanitizer.AllowedTags.Add("small");
-        sanitizer.AllowedTags.Add("big");
-        sanitizer.AllowedTags.Add("tt");
-        sanitizer.AllowedTags.Add("code");
-        sanitizer.AllowedTags.Add("kbd");
-        sanitizer.AllowedTags.Add("var");
-        sanitizer.AllowedTags.Add("samp");
-
-        // Lists
-        sanitizer.AllowedTags.Add("ul");
-        sanitizer.AllowedTags.Add("ol");
-        sanitizer.AllowedTags.Add("li");
-        sanitizer.AllowedTags.Add("dl");
-        sanitizer.AllowedTags.Add("dt");
-        sanitizer.AllowedTags.Add("dd");
 
         // Tables
         sanitizer.AllowedTags.Add("table");
-        sanitizer.AllowedTags.Add("caption");
         sanitizer.AllowedTags.Add("thead");
         sanitizer.AllowedTags.Add("tbody");
         sanitizer.AllowedTags.Add("tfoot");
         sanitizer.AllowedTags.Add("tr");
         sanitizer.AllowedTags.Add("th");
         sanitizer.AllowedTags.Add("td");
-        sanitizer.AllowedTags.Add("col");
-        sanitizer.AllowedTags.Add("colgroup");
-
-        // Style and metadata
-        sanitizer.AllowedTags.Add("style");
-        sanitizer.AllowedTags.Add("meta");
 
         // Global attributes
         sanitizer.AllowedAttributes.Add("id");
@@ -101,12 +76,12 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         sanitizer.AllowedAttributes.Add("title");
         sanitizer.AllowedAttributes.Add("lang");
         sanitizer.AllowedAttributes.Add("dir");
+        sanitizer.AllowedAttributes.Add("http-equiv");
+        sanitizer.AllowedAttributes.Add("content");
 
         // Table attributes
         sanitizer.AllowedAttributes.Add("colspan");
         sanitizer.AllowedAttributes.Add("rowspan");
-        sanitizer.AllowedAttributes.Add("headers");
-        sanitizer.AllowedAttributes.Add("scope");
         sanitizer.AllowedAttributes.Add("align");
         sanitizer.AllowedAttributes.Add("valign");
         sanitizer.AllowedAttributes.Add("border");
@@ -119,20 +94,69 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         sanitizer.AllowedAttributes.Add("width");
         sanitizer.AllowedAttributes.Add("height");
 
-        // Font attributes
-        sanitizer.AllowedAttributes.Add("face");
-        sanitizer.AllowedAttributes.Add("size");
-        sanitizer.AllowedAttributes.Add("color");
-
         // Allow all CSS properties
-        sanitizer.AllowedCssProperties.Add("*");
+        var commonCssProperties = new[]
+        {
+            // Layout
+            "display", "position", "top", "right", "bottom", "left", "float", "clear",
+            "visibility", "opacity", "z-index", "overflow", "clip",
+            
+            // Box model
+            "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
+            "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+            "width", "min-width", "max-width", "height", "min-height", "max-height",
+            "box-sizing", "box-shadow",
+            
+            // Typography
+            "font", "font-family", "font-size", "font-weight", "font-style",
+            "text-align", "text-decoration", "text-transform", "text-indent",
+            "line-height", "letter-spacing", "word-spacing", "white-space",
+            "color", "background", "background-color", "background-image",
+            "text-shadow",
+            
+            // Borders
+            "border", "border-color", "border-style", "border-width",
+            "border-top", "border-right", "border-bottom", "border-left",
+            "border-radius", "border-collapse", "border-spacing",
+            
+            // Tables
+            "table-layout", "caption-side", "empty-cells",
+            
+            // Lists
+            "list-style", "list-style-type", "list-style-position", "list-style-image",
+            
+            // Images
+            "max-width", "max-height", "object-fit", "object-position",
+            
+            // Flexbox
+            "flex", "flex-basis", "flex-direction", "flex-flow", "flex-grow",
+            "flex-shrink", "flex-wrap", "align-items", "align-content",
+            "justify-content", "gap",
+            
+            // Grid
+            "grid", "grid-template-columns", "grid-template-rows", "grid-gap",
+            "grid-column", "grid-row",
+            
+            // Transforms
+            "transform", "transform-origin", "rotate", "scale",
+            
+            // Transitions
+            "transition", "transition-property", "transition-duration",
+            "transition-timing-function", "transition-delay",
+            
+            // Others
+            "cursor", "pointer-events", "user-select"
+        };
 
-        // Allow data attributes
-        sanitizer.AllowedAttributes.Add("data-*");
+        foreach (var property in commonCssProperties)
+        {
+            sanitizer.AllowedCssProperties.Add(property);
+        }
 
-        // Configure to keep text content intact
+        // Allow all CSS values
         sanitizer.KeepChildNodes = true;
-
+        sanitizer.UriAttributes.Clear();  // Don't restrict URI attributes
+        
         return sanitizer;
     }
 
@@ -142,30 +166,6 @@ public partial class HtmlSanitizerWrapper : IHtmlSanitizer
         {
             return html;
         }
-
-        //// Extract data URLs before sanitization
-        //var dataUrls = new Dictionary<string, string>();
-        //var counter = 0;
-        //var pattern = "data:[^\"']+;base64,[^\"']+";
-        //var placeholderFormat = "DATA_URL_PLACEHOLDER_{0}";
-
-        //html = Regex.Replace(html, pattern, match =>
-        //{
-        //    var placeholder = string.Format(placeholderFormat, counter);
-        //    dataUrls[placeholder] = match.Value;
-        //    counter++;
-        //    return placeholder;
-        //});
-
-        //// Sanitize HTML
-        //var sanitized = _sanitizer.Sanitize(html);
-
-        //// Restore data URLs
-        //foreach (var kvp in dataUrls)
-        //{
-        //    sanitized = sanitized.Replace(kvp.Key, kvp.Value);
-        //}
-        //return sanitized;
 
         return _sanitizer.Sanitize(html);
     }

@@ -89,7 +89,7 @@ const messages: { [key: string]: TranslationMessages } = {
             },
             test: {
                 title: 'Test template: %{name}',
-                action: 'Test',
+                action: 'PDF',
                 download: 'Download PDF',
                 template: 'Template',
                 model: 'Data Model',
@@ -176,7 +176,7 @@ const messages: { [key: string]: TranslationMessages } = {
             },
             test: {
                 title: 'Testaa mallipohjaa: %{name}',
-                action: 'Testaa',
+                action: 'PDF',
                 download: 'Lataa PDF',
                 template: 'Mallipohja',
                 model: 'Tietomalli',
@@ -263,7 +263,7 @@ const messages: { [key: string]: TranslationMessages } = {
             },
             test: {
                 title: 'Testa mall: %{name}',
-                action: 'Testa',
+                action: 'PDF',
                 download: 'Ladda ner PDF',
                 template: 'Mall',
                 model: 'Datamodell',

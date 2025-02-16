@@ -105,7 +105,7 @@ export const registerHandlebarsHelpers = async () => {
             console.warn(`CSS not found: ${referenceName}`);
             return '';
         }
-        return new Handlebars.SafeString(`<style>${css.content}</style>`);
+        return new Handlebars.SafeString(`<style type='text/css' data-asset='{referenceName}'>${css.content}</style>`);
     });
 
     Handlebars.registerHelper('font', function(referenceName) {

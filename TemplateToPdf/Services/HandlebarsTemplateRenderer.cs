@@ -120,7 +120,11 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
             if (asset == null || asset.Type != AssetType.Css)
                 return;
 
-            writer.WriteSafeString($"<style>{asset.Content}</style>");
+            // Inject CSS directly without :root scoping to ensure it works in PDF
+            writer.WriteSafeString($@"
+                <style type='text/css' data-asset='{referenceName}'>
+                    {asset.Content}
+                </style>");
         });
 
         // Helper for including images
@@ -199,21 +203,15 @@ public class HandlebarsTemplateRenderer : ITemplateRenderer
 
     public string RenderTemplate<T>(string template, T model, bool sanitize = true)
     {
-        _logger.LogDebug("Template: {Template}", template);
-        _logger.LogDebug("Model: {@Model}", model);
-
         // Create a new Handlebars instance for each render to ensure latest helpers
         var handlebars = CreateHandlebars();
         var compiledTemplate = handlebars.Compile(template);
         var result = compiledTemplate(model);
         
-        _logger.LogDebug("Rendered result before sanitization: {Result}", result);
-        
         // Only sanitize the final result if sanitize is true
         if (sanitize)
         {
             result = _htmlSanitizer.Sanitize(result);
-            _logger.LogDebug("Sanitized result: {Result}", result);
         }
         
         return result;

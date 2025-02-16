@@ -61,11 +61,35 @@ public class PuppeteerPdfConverter(ILogger<PuppeteerPdfConverter> logger) : IHtm
         _logger.LogDebug("Creating new page for PDF generation");
         using var page = await _browser.NewPageAsync();
 
+        // Set viewport based on the selected page size
+        var viewport = GetViewportForPageSize(pageSize);
+        _logger.LogDebug("Setting viewport for {PageSize}: {Width}x{Height} pixels", 
+            pageSize, viewport.Width, viewport.Height);
+        await page.SetViewportAsync(viewport);
+
         _logger.LogDebug("Setting page content");
         await page.SetContentAsync(html);
 
-        // Wait a bit to ensure all content is rendered
-        await page.WaitForTimeoutAsync(2000);
+        // Wait for any fonts to load
+        await page.WaitForTimeoutAsync(1000);
+
+        // Ensure all content and styles are loaded
+        await page.EvaluateExpressionAsync(@"
+            new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    const styleSheets = document.styleSheets;
+                    let loaded = true;
+                    for (let i = 0; i < styleSheets.length; i++) {
+                        if (!styleSheets[i].cssRules) loaded = false;
+                    }
+                    if (loaded) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 100);
+                setTimeout(resolve, 2000); // Timeout after 2s
+            })
+        ");
 
         var paperFormat = GetPaperFormat(pageSize);
 
@@ -73,7 +97,7 @@ public class PuppeteerPdfConverter(ILogger<PuppeteerPdfConverter> logger) : IHtm
         var pdfBytes = await page.PdfDataAsync(new PdfOptions
         {
             Format = paperFormat,
-            PrintBackground = false,
+            PrintBackground = true,
             PreferCSSPageSize = true,
             MarginOptions = new MarginOptions
             {
@@ -115,6 +139,36 @@ public class PuppeteerPdfConverter(ILogger<PuppeteerPdfConverter> logger) : IHtm
             PageSize.Legal => PaperFormat.Legal,
             PageSize.Tabloid => PaperFormat.Tabloid,
             _ => PaperFormat.A4,
+        };
+    }
+
+    private static ViewPortOptions GetViewportForPageSize(PageSize pageSize)
+    {
+        // Standard DPI for high-quality rendering
+        const int dpi = 150;
+        const double mmToPixel = dpi / 25.4; // 25.4mm = 1 inch
+
+        // Get dimensions in pixels based on page size (sizes in mm)
+        var (widthMm, heightMm) = pageSize switch
+        {
+            PageSize.A0 => (841, 1189),
+            PageSize.A1 => (594, 841),
+            PageSize.A2 => (420, 594),
+            PageSize.A3 => (297, 420),
+            PageSize.A4 => (210, 297),
+            PageSize.A5 => (148, 210),
+            PageSize.A6 => (105, 148),
+            PageSize.Letter => (215.9, 279.4),
+            PageSize.Legal => (215.9, 355.6),
+            PageSize.Tabloid => (279.4, 431.8),
+            _ => (210, 297) // Default to A4
+        };
+
+        return new ViewPortOptions
+        {
+            Width = (int)(widthMm * mmToPixel),
+            Height = (int)(heightMm * mmToPixel),
+            DeviceScaleFactor = 1.5  // Higher scale factor for sharper text
         };
     }
 } 
