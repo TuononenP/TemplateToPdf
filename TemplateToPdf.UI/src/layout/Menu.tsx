@@ -1,23 +1,43 @@
-import { Menu as ReactAdminMenu } from 'react-admin';
+import { Menu as ReactAdminMenu, MenuItemLink } from 'react-admin';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SettingsIcon from '@mui/icons-material/Settings';
+import DescriptionIcon from '@mui/icons-material/Description';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+
+const menuItemStyles = {
+    '&.RaMenuItemLink-active': {
+        backgroundColor: 'action.selected',
+    },
+    '&:hover': {
+        backgroundColor: 'action.hover',
+    },
+};
 
 export const Menu = () => (
     <ReactAdminMenu>
-        <ReactAdminMenu.DashboardItem
+        <MenuItemLink
+            to="/"
             primaryText="Dashboard"
             leftIcon={<DashboardIcon />}
+            sx={menuItemStyles}
         />
-        <ReactAdminMenu.ResourceItem
-            name="templates"
+        <MenuItemLink
+            to="/templates"
+            primaryText="Templates"
+            leftIcon={<DescriptionIcon />}
+            sx={menuItemStyles}
         />
-        <ReactAdminMenu.ResourceItem
-            name="assets"
+        <MenuItemLink
+            to="/assets"
+            primaryText="Assets"
+            leftIcon={<InsertDriveFileIcon />}
+            sx={menuItemStyles}
         />
-        <ReactAdminMenu.Item
+        <MenuItemLink
             to="/settings"
             primaryText="Settings"
             leftIcon={<SettingsIcon />}
+            sx={menuItemStyles}
         />
     </ReactAdminMenu>
 ); 
