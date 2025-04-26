@@ -1,8 +1,45 @@
-# Template to PDF API
+# Template to PDF
 
 A .NET Web API for generating PDFs from Handlebars templates using wkhtmltopdf and a React user interface.
 
 Web API for generating PDF documents from Handlebars templates using wkhtmltopdf. This service provides template management with versioning, asset management (images, CSS, fonts, partial templates), and PDF generation with customizable settings. Features include built-in and custom Handlebars helpers, multiple output formats, HTML sanitization, and a modern React-based UI with multilingual support. Perfect for applications requiring dynamic document generation from templates with structured data.
+
+## Features
+
+- Template Management
+  - Create, edit, and delete HTML templates
+  - Preview templates with sample data
+  - Generate PDFs from templates
+  - Built-in and custom Handlebars helpers
+  - Template versioning with creation and update timestamps
+- Asset Management
+  - Support for multiple asset types:
+    - Images (stored as binary data)
+    - CSS stylesheets
+    - Fonts (WOFF2 format)
+    - Partial templates
+  - Automatic reference name generation
+  - Content type validation
+  - Easy integration with templates
+- PDF Generation
+  - Multiple page sizes (A0-A6, Letter, Legal, Tabloid)
+  - Custom margins and styling
+  - HTML sanitization for security
+  - Support for custom fonts
+  - Caching for improved performance
+- User Interface
+  - Modern React-based interface
+  - Light and dark themes
+  - Multi-language support (English, Finnish, Swedish)
+  - Template preview and testing
+  - Asset library management
+  - Responsive design
+- Security
+  - HTML content sanitization
+  - Safe evaluation of custom helpers
+  - HTTPS support
+  - Input validation
+  - Error handling and logging
 
 ## Prerequisites
 
@@ -63,43 +100,6 @@ dotnet run --project TemplateToPdf/TemplateToPdf.csproj --launch-profile Templat
 4. The API will be available at:
    - HTTP: http://localhost:6050
    - HTTPS: https://localhost:6051
-
-## Features
-
-- Template Management
-  - Create, edit, and delete HTML templates
-  - Preview templates with sample data
-  - Generate PDFs from templates
-  - Built-in and custom Handlebars helpers
-  - Template versioning with creation and update timestamps
-- Asset Management
-  - Support for multiple asset types:
-    - Images (stored as binary data)
-    - CSS stylesheets
-    - Fonts (WOFF2 format)
-    - Partial templates
-  - Automatic reference name generation
-  - Content type validation
-  - Easy integration with templates
-- PDF Generation
-  - Multiple page sizes (A0-A6, Letter, Legal, Tabloid)
-  - Custom margins and styling
-  - HTML sanitization for security
-  - Support for custom fonts
-  - Caching for improved performance
-- User Interface
-  - Modern React-based interface
-  - Light and dark themes
-  - Multi-language support (English, Finnish, Swedish)
-  - Template preview and testing
-  - Asset library management
-  - Responsive design
-- Security
-  - HTML content sanitization
-  - Safe evaluation of custom helpers
-  - HTTPS support
-  - Input validation
-  - Error handling and logging
 
 ## Built-in Handlebars Helpers
 
