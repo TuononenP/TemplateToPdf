@@ -56,7 +56,7 @@ For other Linux distributions:
 2. Navigate to the project directory
 3. Run the application:
 ```bash
-dotnet run --project TemplateToPdf/TemplateToPdf.csproj
+dotnet run --project TemplateToPdf/TemplateToPdf.csproj --launch-profile TemplateToPdf
 ```
 4. The API will be available at:
    - HTTP: http://localhost:6050
