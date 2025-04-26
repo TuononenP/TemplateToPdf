@@ -1,6 +1,8 @@
 # Template to PDF API
 
-A .NET 8 Web API for generating PDFs from Handlebars templates using wkhtmltopdf.
+A .NET Web API for generating PDFs from Handlebars templates using wkhtmltopdf and a React user interface.
+
+Web API for generating PDF documents from Handlebars templates using wkhtmltopdf. This service provides template management with versioning, asset management (images, CSS, fonts, partial templates), and PDF generation with customizable settings. Features include built-in and custom Handlebars helpers, multiple output formats, HTML sanitization, and a modern React-based UI with multilingual support. Perfect for applications requiring dynamic document generation from templates with structured data.
 
 ## Prerequisites
 
