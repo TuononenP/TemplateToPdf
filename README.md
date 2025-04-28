@@ -45,6 +45,12 @@ Web API for generating PDF documents from Handlebars templates using wkhtmltopdf
 
 - .NET 8 SDK
 - wkhtmltopdf
+- Node.js 18 or later
+- npm 9 or later
+
+### Installing .NET 8 SDK
+
+1. Download .NET 8 SDK installed here [https://dotnet.microsoft.com/en-us/download/dotnet/8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 
 ### Installing wkhtmltopdf
 
@@ -89,7 +95,7 @@ For other Linux distributions:
 - Arch Linux: Install via `pacman -S wkhtmltopdf`
 - Alpine: Install via `apk add wkhtmltopdf`
 
-## Running the Application
+## Running the backend application
 
 1. Clone the repository
 2. Navigate to the project directory
@@ -100,6 +106,29 @@ dotnet run --project TemplateToPdf/TemplateToPdf.csproj --launch-profile Templat
 4. The API will be available at:
    - HTTP: http://localhost:6050
    - HTTPS: https://localhost:6051
+
+## Running the frontend application
+
+1. Navigate to TemplateToPdf.UI folder
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+   - Copy `.env.development` to `.env.local` for local development
+   - Adjust API URL if needed in `.env.local`:
+```env
+REACT_APP_API_URL=https://localhost:6051/api
+PORT=3000
+```
+
+4. Start the development server:
+```bash
+npm start
+```
+
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
 ## Built-in Handlebars Helpers
 
